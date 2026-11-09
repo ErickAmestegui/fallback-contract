@@ -6,9 +6,9 @@ export const MODEL_OPTIONS = {
 } as const
 
 export const CONTRACT_RULES = [
-  'JSON válido según el contrato',
-  'Categoría dentro del conjunto permitido',
-  'La categoría coincide con la referencia',
+  'Valid JSON according to the contract',
+  'Category is in the allowed set',
+  'Category matches the reference',
 ] as const
 
 export type ModelRole = 'reference' | 'candidate'

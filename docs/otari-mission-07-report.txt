@@ -71,6 +71,13 @@ Validaciones ejecutadas:
   - docs/screenshots/mission-07-desktop.png
   - docs/screenshots/mission-07-mobile.png
   - docs/screenshots/mission-07-final-desktop.png
+  - docs/screenshots/mission-07-refined-320.png
+  - docs/screenshots/mission-07-refined-375.png
+  - docs/screenshots/mission-07-refined-390.png
+  - docs/screenshots/mission-07-refined-768.png
+  - docs/screenshots/mission-07-refined-1440.png
+  - docs/screenshots/mission-07-refined-mobile.png
+  - docs/screenshots/mission-07-refined-desktop.png
   Ambas fueron tomadas con Playwright; la prueba movil no detecto overflow
   horizontal.
 - Skills consultadas realmente:
@@ -134,6 +141,24 @@ Diagnostico de conectividad (correccion final):
   proveedor.
 - El endpoint temporal de diagnostico fue eliminado antes del commit final;
   no queda una ruta que pruebe cabeceras ni presencia del secreto.
+
+Refinamiento visual posterior:
+- Skills consultadas realmente: `frontend-design` y `webapp-testing`, leidas
+  desde `C:\Users\emili\.codync\skills\`. El runtime no permitio invocarlas
+  por nombre, pero sus instrucciones locales se aplicaron.
+- La navegacion movil ahora usa un menu accesible con `aria-expanded`,
+  etiquetas completas, foco visible y anclas a Overview, Compare models,
+  Contracts, Executions y Evidence.
+- Los selectores de modelo pasan a filas verticales bajo 640 px.
+- Las reglas muestran `Configured · not evaluated`; ya no usan un check que
+  sugiera aprobacion antes de una ejecucion.
+- Se eliminaron referencias publicas a Mission 07/Mission 08 y se dejo claro
+  que la evaluacion esta deshabilitada hasta conectar el backend.
+- La interfaz se unifico en ingles y se mejoraron footer, wrapping del
+  identificador de contrato, fondos calidos y detalles naranjas discretos.
+- Playwright comprobo 320, 375, 390, 768 y 1440 px: sin overflow horizontal.
+  En 320/375/390 px comprobo tambien apertura del menu, cinco destinos,
+  `aria-expanded=true`, activacion de Compare models y foco navegable.
 
 Fuentes consultadas:
 - Cloudflare variables y secrets locales:

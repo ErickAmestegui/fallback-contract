@@ -5,7 +5,7 @@ const status: BackendStatus = {
   service: 'fallback-contract-worker',
   status: 'ok',
   otari: 'not_checked',
-  message: 'Backend conectado. Otari se verificará durante la evaluación real.',
+  message: 'Backend connected. Otari will be checked during a live evaluation.',
   contractId: 'support-card-classification-v1',
 }
 
