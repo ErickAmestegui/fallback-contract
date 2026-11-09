@@ -1,4 +1,4 @@
-import type { OtariChatRequest, OtariModelResult, OtariUsage } from './types'
+import type { OtariChatRequest, OtariModelResult, OtariUsage } from './types.js'
 
 export const OTARI_BASE_URL = 'https://api.otari.ai/api/v1'
 
@@ -14,6 +14,16 @@ interface OtariChatResponse {
   }>
   usage?: Partial<OtariUsage>
   error?: { code?: string; message?: string }
+}
+
+interface OtariModelsResponse {
+  data?: Array<{ id?: string }>
+}
+
+export interface OtariModelsResult {
+  status: 'ok' | 'inconclusive'
+  models: string[]
+  error: { status: number | null; code: string | null; message: string } | null
 }
 
 const emptyUsage = (): OtariUsage => ({
@@ -113,6 +123,63 @@ export async function callOtari(
         status: null,
         code: error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'transport_error',
         message: 'No se pudo completar la conexión con Otari.',
+      },
+    }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function listOtariModels(
+  env: OtariEnv,
+  fetcher: typeof fetch = fetch,
+  timeoutMs = 10_000,
+): Promise<OtariModelsResult> {
+  if (!env.OTARI_API_KEY) {
+    return {
+      status: 'inconclusive',
+      models: [],
+      error: { status: null, code: 'missing_secret', message: 'Otari no está configurado en el Worker.' },
+    }
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+  try {
+    const response = await fetcher(`${OTARI_BASE_URL}/models`, {
+      method: 'GET',
+      headers: { 'Otari-Key': env.OTARI_API_KEY },
+      signal: controller.signal,
+    })
+    const payload = (await response.json()) as OtariModelsResponse
+
+    if (!response.ok) {
+      return {
+        status: 'inconclusive',
+        models: [],
+        error: {
+          status: response.status,
+          code: response.headers.get('Otari-Error-Code'),
+          message: 'Otari no pudo listar los modelos.',
+        },
+      }
+    }
+
+    return {
+      status: 'ok',
+      models: (payload.data ?? []).flatMap((model) => model.id ? [model.id] : []),
+      error: null,
+    }
+  } catch (error) {
+    console.error('Otari models request failed', error instanceof Error ? error.name : typeof error)
+    return {
+      status: 'inconclusive',
+      models: [],
+      error: {
+        status: null,
+        code: error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'transport_error',
+        message: 'No se pudo consultar los modelos de Otari.',
       },
     }
   } finally {

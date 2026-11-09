@@ -23,18 +23,20 @@ Scaffolding:
 
 Estructura creada:
 - src/App.tsx y src/App.css: interfaz inicial premium, responsive y sin datos
-  de evaluacion inventados.
+  de evaluacion inventados, con paleta naranja aprobada.
 - src/contracts/support-card.ts: identificadores y tipos del contrato inicial.
 - src/otari/client.ts: cliente HTTP tipado server-side, timeout, headers,
   request ID, modelo efectivo, usage y errores redacted.
 - src/otari/types.ts: tipos de request/resultados.
-- worker/index.ts: GET /api/status y rechazo seguro de rutas no implementadas.
+- worker/index.ts: GET /api/status, GET /api/models read-only y rechazo seguro
+  de rutas no implementadas.
 - tests/otari-client.test.ts: ausencia de secreto, respuesta 200 y fallo 401.
 - vitest.config.ts: tests aislados del plugin Cloudflare de Vite.
 - docs/otari-mission-07-report.txt: este informe.
 
 Endpoints locales:
 - GET /api/status -> estado real de conectividad frontend-Worker.
+- GET /api/models -> consulta server-side de modelos, sin exponer la clave.
 - Rutas /api no implementadas -> HTTP 404 explicito.
 - No se habilitaron tools, completions ni proxy publico.
 
@@ -44,8 +46,12 @@ Integracion Otari:
 - Acepta OTARI-Request-ID, modelo efectivo, finish_reason, usage y
   Otari-Error-Code sin devolver secretos ni razonamiento.
 - No se realizo una completion facturable.
-- No se hizo GET /models en esta mision; por tanto la integracion queda
-  preparada y tipada, pero no se declara conectividad Otari en vivo.
+- GET directo a https://api.otari.ai/api/v1/models: HTTP 200. La respuesta
+  incluyo openai/gpt-oss-20b y alibaba/qwen3-32b, entre otros modelos.
+- GET /api/models desde el Worker local de Wrangler: la ruta existe, pero el
+  runtime devolvio status=inconclusive y code=transport_error al intentar el
+  fetch saliente. Esto no demuestra conectividad Otari desde Worker.
+- No se realizaron completions facturables.
 - La UI muestra "Otari no verificado" y no presenta request IDs, costes ni
   decisiones reales.
 
@@ -58,6 +64,19 @@ Validaciones ejecutadas:
 - GET http://127.0.0.1:5173/: HTTP 200.
 - GET http://127.0.0.1:5173/api/status: HTTP 200 con status=ok,
   otari=not_checked y contractId=support-card-classification-v1.
+- GET http://127.0.0.1:8787/api/models: HTTP 503 con error redactado
+  transport_error; el secreto aparecio como binding oculto de Wrangler y no
+  se imprimio.
+- Capturas reales:
+  - docs/screenshots/mission-07-desktop.png
+  - docs/screenshots/mission-07-mobile.png
+  Ambas fueron tomadas con Playwright; la prueba movil no detecto overflow
+  horizontal.
+- Skills consultadas realmente:
+  - frontend-design (C:\Users\emili\.codync\skills\frontend-design\SKILL.md)
+  - webapp-testing (C:\Users\emili\.codync\skills\webapp-testing\SKILL.md)
+  El runtime de skills registradas no permitio invocarlas por nombre; se
+  leyeron sus instrucciones locales y se aplicaron en el trabajo.
 - Auditoria del bundle: OTARI_API_KEY y Otari-Key no aparecen en el cliente;
   la cadena publica api.otari.ai aparece solo como etiqueta visual del gateway.
 - .dev.vars, .env y dist estan ignorados por Git.
@@ -77,8 +96,8 @@ Commit inicial de integracion:
 - 57d1477 Initialize web application via create-cloudflare CLI
   (commit raiz generado por C3; contiene el esqueleto oficial, no aun el
   cliente Otari).
-- El commit de integracion Otari se creara al cerrar esta mision y se
-  identificara en el registro Git.
+- El cliente Otari y el endpoint /api/models quedan en cambios posteriores;
+  el commit de cierre se identificara en el registro Git.
 
 Pendiente para Mision 08:
 - Implementar Ajv y reglas deterministas.
@@ -88,7 +107,8 @@ Pendiente para Mision 08:
 - Construir resultados, diferencias y panel de evidencia real.
 
 Dictamen:
-PARCIAL. La base técnica, UI inicial, Worker local, cliente tipado y pruebas
-locales estan listos. La conectividad Otari en vivo y el motor de contratos se
-reservan para las misiones posteriores; no se afirma que la integracion real
-este demostrada por mocks.
+PARCIAL. La base tecnica, UI naranja, Worker local, cliente tipado y pruebas
+locales estan listos. La API upstream responde, pero la consulta desde el
+runtime Worker local no pudo completarse por transport_error; queda pendiente
+validar el mismo endpoint en un entorno Worker con salida permitida. No se
+afirma integracion completa ni se implementa el motor de contratos.

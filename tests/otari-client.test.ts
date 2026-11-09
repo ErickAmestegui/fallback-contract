@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { callOtari } from '../src/otari/client'
+import { callOtari, listOtariModels } from '../src/otari/client'
 
 describe('callOtari', () => {
   it('returns an inconclusive result without exposing a missing secret', async () => {
@@ -55,5 +55,23 @@ describe('callOtari', () => {
     expect(result.status).toBe('inconclusive')
     expect(result.error).toMatchObject({ status: 401, code: 'invalid_api_key' })
     expect(result.error?.message).not.toContain('secret details')
+  })
+
+  it('lists models without sending a completion request', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      data: [{ id: 'openai/gpt-oss-20b' }, { id: 'alibaba/qwen3-32b' }],
+    }), { status: 200 }))
+
+    const result = await listOtariModels({ OTARI_API_KEY: 'test-secret-never-logged' }, fetcher)
+
+    expect(result).toEqual({
+      status: 'ok',
+      models: ['openai/gpt-oss-20b', 'alibaba/qwen3-32b'],
+      error: null,
+    })
+    expect(fetcher).toHaveBeenCalledWith(
+      'https://api.otari.ai/api/v1/models',
+      expect.objectContaining({ method: 'GET' }),
+    )
   })
 })
