@@ -74,4 +74,19 @@ describe('callOtari', () => {
       expect.objectContaining({ method: 'GET' }),
     )
   })
+
+  it('preserves an upstream HTTP error instead of misclassifying it as transport', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response('<html>forbidden</html>', {
+      status: 403,
+      headers: { 'Content-Type': 'text/html' },
+    }))
+
+    const result = await listOtariModels({ OTARI_API_KEY: 'test-secret-never-logged' }, fetcher)
+
+    expect(result).toMatchObject({
+      status: 'inconclusive',
+      models: [],
+      error: { status: 403, code: 'http_403' },
+    })
+  })
 })

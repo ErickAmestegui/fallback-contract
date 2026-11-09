@@ -152,7 +152,6 @@ export async function listOtariModels(
       headers: { 'Otari-Key': env.OTARI_API_KEY },
       signal: controller.signal,
     })
-    const payload = (await response.json()) as OtariModelsResponse
 
     if (!response.ok) {
       return {
@@ -160,12 +159,13 @@ export async function listOtariModels(
         models: [],
         error: {
           status: response.status,
-          code: response.headers.get('Otari-Error-Code'),
+          code: response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
           message: 'Otari no pudo listar los modelos.',
         },
       }
     }
 
+    const payload = (await response.json()) as OtariModelsResponse
     return {
       status: 'ok',
       models: (payload.data ?? []).flatMap((model) => model.id ? [model.id] : []),

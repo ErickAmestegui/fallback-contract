@@ -65,11 +65,12 @@ Validaciones ejecutadas:
 - GET http://127.0.0.1:5173/api/status: HTTP 200 con status=ok,
   otari=not_checked y contractId=support-card-classification-v1.
 - GET http://127.0.0.1:8787/api/models: HTTP 503 con error redactado
-  transport_error; el secreto aparecio como binding oculto de Wrangler y no
-  se imprimio.
+  http_403. El binding aparecio como disponible en Wrangler (sin mostrar su
+  valor) y no se imprimio ninguna cabecera de autenticacion.
 - Capturas reales:
   - docs/screenshots/mission-07-desktop.png
   - docs/screenshots/mission-07-mobile.png
+  - docs/screenshots/mission-07-final-desktop.png
   Ambas fueron tomadas con Playwright; la prueba movil no detecto overflow
   horizontal.
 - Skills consultadas realmente:
@@ -108,7 +109,45 @@ Pendiente para Mision 08:
 
 Dictamen:
 PARCIAL. La base tecnica, UI naranja, Worker local, cliente tipado y pruebas
-locales estan listos. La API upstream responde, pero la consulta desde el
-runtime Worker local no pudo completarse por transport_error; queda pendiente
-validar el mismo endpoint en un entorno Worker con salida permitida. No se
-afirma integracion completa ni se implementa el motor de contratos.
+locales estan listos. La API upstream responde directamente en Windows, pero
+el egress del runtime Worker recibe HTTP 403; queda pendiente validar si
+`wrangler dev --remote` obtiene una politica distinta. No se afirma
+integracion completa ni se implementa el motor de contratos.
+
+Diagnostico de conectividad (correccion final):
+- El diagnostico temporal dentro del mismo runtime `workerd` confirmo:
+  `binding.otariApiKeyPresent=true`; `https://example.com` devolvio HTTP 200;
+  `https://api.otari.ai/api/v1/health` devolvio HTTP 403; y `/models`
+  devolvio HTTP 403 con `content-type=text/html` y `server=awselb/2.0`.
+- Se probaron tres formas de autenticacion sin registrar valores:
+  `Otari-Key`, `Authorization` y `Authorization: Bearer`. Las tres recibieron
+  HTTP 403 desde el runtime Worker. Esto descarta DNS, conexion TLS y timeout;
+  el rechazo ocurre en la fase HTTP upstream. El binding si llega al Worker.
+- La causa inmediata del `transport_error` era un bug de clasificacion local:
+  `listOtariModels` intentaba ejecutar `response.json()` antes de comprobar
+  `response.ok`. El upstream devolvia HTML 403, el parseo lanzaba
+  `SyntaxError` y el catch lo convertia en `transport_error`.
+- Se corrigio el orden: ahora un rechazo HTTP devuelve `status=403` y
+  `code=http_403`, sin intentar parsear el cuerpo ni exponerlo. La causa
+  residual del 403 parece especifica del egress/runtime o de la politica
+  upstream, no del binding ni de la URL; no se afirma mas sin evidencia del
+  proveedor.
+- El endpoint temporal de diagnostico fue eliminado antes del commit final;
+  no queda una ruta que pruebe cabeceras ni presencia del secreto.
+
+Fuentes consultadas:
+- Cloudflare variables y secrets locales:
+  https://developers.cloudflare.com/workers/local-development/environment-variables/
+- Cloudflare bindings por entorno:
+  https://developers.cloudflare.com/workers/local-development/bindings-per-env/
+- Cloudflare Fetch:
+  https://developers.cloudflare.com/workers/runtime-apis/fetch/
+- Otari quickstart:
+  https://docs.otari.ai/getting-started/quickstart.md
+
+Alternativa oficial no ejecutada:
+- `wrangler dev --remote` es el mecanismo de Wrangler para probar el Worker
+  en la red de Cloudflare sin publicar un deployment permanente. No se ejecuto
+  porque requiere autenticacion/configuracion de cuenta y podria crear un
+  recurso remoto; queda como siguiente prueba autorizable, no como evidencia
+  actual.
