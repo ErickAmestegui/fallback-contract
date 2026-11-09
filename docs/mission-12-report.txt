@@ -1,0 +1,64 @@
+OTARI LAB - MISSION 12/16
+PUBLIC DEMO DEPLOYMENT AUDIT
+
+Status: PARTIAL
+Date: 2026-11-09
+
+Public mode:
+- The site is a read-only Vite build loading the exact Mission 10 recorded
+  evidence copy. It makes no inference request and presents the run as
+  RECORDED LIVE RUN.
+- The original evidence file remains unchanged. The public copy has the same
+  SHA-256: AF7207575876EA30636A4316A242658A1F4BB210DC928B1BD9720F11A6E89987.
+- Three cases, both models, deterministic REJECT, rules, raw responses,
+  request IDs, effective models, tokens and reported cost are inspectable.
+- No timestamp was present in the source evidence, so none is invented.
+
+Netlify isolation:
+- netlify.toml publishes only dist/client.
+- Netlify's configured functions directory is private/functions-disabled,
+  containing only .gitkeep. The previous netlify/functions directory was
+  removed so it cannot be auto-detected.
+- The credit-consuming function remains in private/functions/compare.ts as a
+  deployment candidate only; it is not inside the published artifact or the
+  configured functions directory.
+- No Netlify site, preview, URL or deployment was created.
+- SPA fallback redirects all paths to /index.html.
+
+Artifact checks:
+- Exact local public server: GET / -> HTTP 200.
+- Recorded evidence asset: GET /mission-10-authentic-result.json -> HTTP 200,
+  12,837 bytes.
+- dist/client contains only static assets, index.html and recorded evidence.
+- No api/compare, OTARI_API_KEY, Otari-Key, PUBLIC_INFERENCE_TOKEN or
+  127.0.0.1 reference appears in the client artifact.
+- No automatic Otari call is made by the public demo.
+
+GitHub and history:
+- Branch preserved: hackathon/mozilla-developers-wilding-2026.
+- History preserved from 57d1477 through the current mission commits.
+- README, MIT LICENSE, reproducible commands and deployment limitations are
+  included.
+- Repository has not been published.
+- Security review found no vulnerabilities in the reviewed public changes.
+
+Quality:
+- typecheck: PASS
+- lint: PASS
+- tests: PASS, 15 tests
+- build: PASS
+- Browser automation was unavailable, so no new screenshot was generated.
+  Manual local procedure: npm run build, npm run node-backend, then open
+  http://127.0.0.1:8788/.
+
+Authorization still required:
+1. Approve publishing the repository publicly.
+2. Approve creating a Netlify site and deploying only dist/client.
+3. If ever needed, separately approve enabling authenticated inference and
+   configuring server-only Netlify secrets.
+4. After authorization, perform an external URL audit confirming no function
+   endpoint is reachable.
+
+Verdict: PARTIAL. The static public artifact is prepared and isolated from
+credit-consuming functions, but publication and external verification remain
+intentionally blocked pending explicit authorization.

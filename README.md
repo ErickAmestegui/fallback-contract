@@ -1,43 +1,65 @@
 # Fallback Contract
 
-Base técnica de una puerta para aprobar o rechazar sustituciones de modelos
-según contratos funcionales. El proyecto usa React + TypeScript + Vite en
-Cloudflare Workers, con el gateway Otari preparado server-side.
+Fallback Contract is a deterministic model-replacement gate. It evaluates
+model outputs against a versioned functional contract instead of treating an
+HTTP success as proof of compatibility.
 
-## Misión 07
+## Public demo
 
-Esta versión contiene la interfaz inicial y el endpoint local `GET /api/status`.
-No ejecuta comparaciones ni muestra resultados inventados. La interfaz marca
-claramente que la evaluación real pertenece a una misión posterior.
+The public-safe build is a **read-only recorded demo**. It loads the verified
+Mission 10 evidence from `public/mission-10-authentic-result.json` and does
+not make inference requests. The page labels the run `RECORDED LIVE RUN` and
+shows the authentic models, request IDs, tokens, reported cost, raw outputs,
+rules and deterministic `REJECT` decision.
 
-## Desarrollo
+The public Netlify configuration publishes only `dist/client`. The inference
+function and private Node backend are intentionally outside the configured
+Netlify functions directory. Do not enable public inference without
+authentication, rate limits and an explicit budget review.
+
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-La clave de Otari no se configura en el frontend. Para una futura ejecución
-local del Worker, usar un secreto de Wrangler (`wrangler secret put
-OTARI_API_KEY`) o el mecanismo equivalente del entorno; no crear `.env` con
-credenciales ni incluirla en Git.
+To preview the exact static demo served by the private local server:
 
-## Checks
+```bash
+npm run build
+npm run node-backend
+# open http://127.0.0.1:8788/
+```
+
+The Node backend can perform authenticated comparisons only when explicitly
+run with `OTARI_API_KEY`; the public demo never calls it. The private
+deployment candidate is in `private/functions/compare.ts` and is not included
+in the Netlify publication path.
+
+## Verification
 
 ```bash
 npm run typecheck
 npm test
-npm run build
 npm run lint
+npm run build
 ```
 
-Gateway configurado server-side: `https://api.otari.ai/api/v1`.
-La integración no se presenta como verificada por una completion en esta
-misión; solo se validan tipos, errores y respuestas controladas localmente.
+## Evidence and limitations
 
-## Seguridad
+- Authentic evidence is preserved in `docs/mission-10-authentic-result.json`.
+- The Worker/workerd path to Otari remains HTTP 403.
+- Recorded evidence is not a new real-time request.
+- No request accepts visitor-supplied prompts, models or code.
+- `OTARI_API_KEY` and bearer tokens remain server-side.
 
-- `OTARI_API_KEY` nunca llega al bundle React.
-- No se habilitan herramientas web.
-- No se acepta código arbitrario.
-- Los errores upstream se redactan antes de devolverlos.
+## History
+
+The development branch is
+`hackathon/mozilla-developers-wilding-2026`. The first Otari integration
+commit is `d5027f7` (with the original scaffold at `57d1477`).
+
+## License
+
+MIT; see `LICENSE`.

@@ -1,7 +1,9 @@
 [build]
   command = "npm run build"
   publish = "dist/client"
-  functions = "netlify/functions"
+  functions = "private/functions-disabled"
 
-[functions]
-  node_bundler = "esbuild"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

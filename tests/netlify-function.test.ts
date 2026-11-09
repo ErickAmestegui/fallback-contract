@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import handler from '../netlify/functions/compare'
+import handler from '../private/functions/compare'
 
 const original = {
   enabled: process.env.PUBLIC_INFERENCE_ENABLED,
