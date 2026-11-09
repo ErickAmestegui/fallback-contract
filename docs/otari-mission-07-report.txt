@@ -96,8 +96,8 @@ Commit inicial de integracion:
 - 57d1477 Initialize web application via create-cloudflare CLI
   (commit raiz generado por C3; contiene el esqueleto oficial, no aun el
   cliente Otari).
-- El cliente Otari y el endpoint /api/models quedan en cambios posteriores;
-  el commit de cierre se identificara en el registro Git.
+- El cliente Otari y el endpoint /api/models estan incluidos en el commit
+  de cierre d5027f7da66b31b35e5006ce1687162830ba20d0.
 
 Pendiente para Mision 08:
 - Implementar Ajv y reglas deterministas.
