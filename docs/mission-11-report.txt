@@ -1,0 +1,61 @@
+OTARI LAB - MISSION 11/16
+RECORDED AUTHENTIC EVIDENCE DEMO
+
+Status: PARTIAL
+Date: 2026-11-09
+
+Evidence integrity:
+- docs/mission-10-authentic-result.json was read and left unchanged.
+- public/mission-10-authentic-result.json is an exact SHA-256 copy:
+  AF7207575876EA30636A4316A242658A1F4BB210DC928B1BD9720F11A6E89987.
+- Three shared inputs are shown for both models:
+  lost-card-001 -> lost_or_stolen_card
+  pin-001 -> change_pin
+  arrival-001 -> card_arrival
+- Reference GPT OSS 20B: 3/3 passed.
+- Candidate Qwen3 32B: 1/3 passed; pin-001 and arrival-001 failed because
+  the original response contained Markdown JSON fences. Their inner semantic
+  categories were not marked as failures because strict parsing stopped
+  evaluation at the format rule.
+- Global decision remains authentic REJECT, with the exact two candidate
+  format reasons from the deterministic engine.
+- The recorded file contains six authentic request IDs, effective models,
+  token counts and the reported total cost US$0.000115. No timestamp was
+  present in the source evidence, so the UI does not invent one.
+
+Demo changes:
+- App loads the recorded JSON read-only; it does not call /api/compare.
+- The new RECORDED LIVE RUN panel labels the run as previously captured.
+- Each case shows reference/candidate status, contract status, passed-rule
+  count, raw outputs, format status, semantic-category status and expanded
+  rule details.
+- The evidence panel shows requested/effective models, request IDs, tokens,
+  HTTP status, and reported cost. Missing values would remain "not reported".
+- A disabled "Live inference disabled" control makes the no-spend state
+  explicit. Local fixtures remain separately labelled LOCAL TEST / DEMO.
+- The orange responsive layout and accessible details/keyboard focus patterns
+  are preserved.
+
+Suggested 3-5 minute walkthrough:
+1. Explain that replacement requires behavior evidence, not a 200 response.
+2. Show the fixed models and support-card contract.
+3. Open Recorded live run and point out the global REJECT.
+4. Expand pin-001 or arrival-001 and show the candidate Markdown fences.
+5. Contrast format failure with semantic-category and overall contract status.
+6. Open Authentic request evidence and show IDs, tokens and US$0.000115.
+7. Conclude that Fallback Contract blocks a candidate when independently
+   verified output violates the contract.
+
+Security and validation:
+- Recorded mode performs no billable request.
+- No API key, bearer token or secret appears in the client bundle.
+- Typecheck, lint, 15 tests and build pass.
+- Browser automation was unavailable in this workspace; no new screenshot
+  was generated. The local procedure is: npm run build, then npm run
+  node-backend, and open http://127.0.0.1:8788/.
+- No deployment, publication, Web Fetch, MCP, Guardrails or new Otari call
+  was performed.
+
+Verdict: PARTIAL. The authentic Mission 10 result is now a reproducible,
+read-only jury demo with traceability. Browser screenshot evidence and
+authorized deployment remain pending.

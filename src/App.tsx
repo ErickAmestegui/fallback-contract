@@ -25,8 +25,7 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [demoMode, setDemoMode] = useState<keyof typeof LOCAL_FIXTURES>('approve')
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
-  const [authenticEvidence, setAuthenticEvidence] = useState<AuthenticComparisonResponse | null>(null)
-  const [authenticStatus, setAuthenticStatus] = useState<'idle' | 'running' | 'error'>('idle')
+  const [recordedRun, setRecordedRun] = useState<AuthenticComparisonResponse | null>(null)
 
   useEffect(() => {
     fetch('/api/status')
@@ -39,6 +38,16 @@ function App() {
         setConnectionState('connected')
       })
       .catch(() => setConnectionState('error'))
+  }, [])
+
+  useEffect(() => {
+    fetch('/mission-10-authentic-result.json')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Recorded evidence unavailable')
+        return (await response.json()) as AuthenticComparisonResponse
+      })
+      .then(setRecordedRun)
+      .catch(() => setRecordedRun(null))
   }, [])
 
   const goToSection = (target: string) => {
@@ -55,23 +64,7 @@ function App() {
       reference: fixture.reference,
       candidate: fixture.candidate,
     }))
-    setAuthenticEvidence(null)
     setActiveSection('executions')
-  }
-
-  const runAuthenticComparison = async () => {
-    setAuthenticStatus('running')
-    try {
-      const response = await fetch('/api/compare', { method: 'POST' })
-      if (!response.ok) throw new Error('Authentic comparison unavailable')
-      const result = await response.json() as AuthenticComparisonResponse
-      setComparison(result.comparison)
-      setAuthenticEvidence(result)
-      setAuthenticStatus('idle')
-      setActiveSection('executions')
-    } catch {
-      setAuthenticStatus('error')
-    }
   }
 
   return (
@@ -145,8 +138,7 @@ function App() {
             </div>
             <button className="primary-button disabled-button" type="button" disabled><Play size={16} fill="currentColor" /> Run comparison <span>Evaluation unavailable</span></button>
             <p className="disabled-explanation">Connect an evaluation backend before running live requests.</p>
-            <button className="authentic-button" type="button" onClick={runAuthenticComparison} disabled={authenticStatus === 'running'}><Play size={15} fill="currentColor" /> {authenticStatus === 'running' ? 'Running authentic comparison…' : 'Run authentic comparison'} <span>Private Node backend</span></button>
-            {authenticStatus === 'error' && <p className="authentic-error" role="alert">Private backend unavailable or comparison inconclusive.</p>}
+            <button className="authentic-button" type="button" disabled><Play size={15} fill="currentColor" /> Live inference disabled <span>Recorded run only</span></button>
             <div className="local-demo-controls">
               <label htmlFor="demo-mode">Local test fixture</label>
               <div>
@@ -171,7 +163,8 @@ function App() {
           </div>
         </section>
 
-        {comparison && <ComparisonDetails result={comparison} authenticEvidence={authenticEvidence} />}
+        {recordedRun && <ComparisonDetails result={recordedRun.comparison} authenticEvidence={recordedRun} />}
+        {comparison && <ComparisonDetails result={comparison} authenticEvidence={null} />}
 
         <section className="lower-grid" id="contracts">
           <div className="panel contract-panel">
@@ -203,18 +196,24 @@ function ComparisonDetails({ result, authenticEvidence }: { result: ComparisonRe
     candidateCase: result.candidate.cases.find((candidateCase) => candidateCase.caseId === referenceCase.caseId),
   }))
 
-  return <section className="comparison-details panel" id="comparison-results" aria-live="polite">
+  return <section className="comparison-details panel" id={authenticEvidence ? 'recorded-evidence' : 'local-comparison'} aria-live="polite">
     <div className="panel-heading compact">
-      <div><span className="panel-number">05</span><div><h2>Comparison results</h2><p>{result.evidence === 'otari' ? 'AUTHENTIC OTARI EVIDENCE · private Node backend.' : 'LOCAL TEST / DEMO fixture · no Otari request was made.'}</p></div></div>
+      <div><span className="panel-number">{authenticEvidence ? '05' : '06'}</span><div><h2>{authenticEvidence ? 'Recorded live run' : 'Local comparison results'}</h2><p>{authenticEvidence ? 'RECORDED LIVE RUN · captured previously from authentic Otari requests.' : 'LOCAL TEST / DEMO fixture · no Otari request was made.'}</p></div></div>
       <span className="status-tag neutral">{result.evidence}</span>
     </div>
     <div className="comparison-table" role="table" aria-label="Local comparison results">
-      <div className="comparison-row comparison-header" role="row"><span>Test case</span><span>Reference</span><span>Candidate</span><span>Rules</span></div>
+      <div className="comparison-row comparison-header" role="row"><span>Test case</span><span>Reference</span><span>Candidate</span><span>Contract</span><span>Rules</span></div>
       {rows.map(({ referenceCase, candidateCase }) => <details className="comparison-row comparison-case" key={referenceCase.caseId}>
-        <summary><span>{referenceCase.caseId}</span><span className={`result-chip ${referenceCase.validation.status}`}>{referenceCase.validation.status}</span><span className={`result-chip ${candidateCase?.validation.status ?? 'inconclusive'}`}>{candidateCase?.validation.status ?? 'inconclusive'}</span><span>{referenceCase.validation.checks.filter((check) => check.status === 'passed').length}/{referenceCase.validation.checks.length}</span></summary>
+        <summary><span>{referenceCase.caseId}</span><span className={`result-chip ${referenceCase.validation.status}`}>{referenceCase.validation.status}</span><span className={`result-chip ${candidateCase?.validation.status ?? 'inconclusive'}`}>{candidateCase?.validation.status ?? 'inconclusive'}</span><span className={`result-chip ${candidateCase?.validation.status ?? 'inconclusive'}`}>{candidateCase?.validation.status ?? 'inconclusive'}</span><span>{candidateCase?.validation.checks.filter((check) => check.status === 'passed').length ?? 0}/{candidateCase?.validation.checks.length ?? 0}</span></summary>
         <div className="comparison-expanded">
           <div><strong>Reference output</strong><code>{referenceCase.rawOutput ?? 'No evidence'}</code></div>
           <div><strong>Candidate output</strong><code>{candidateCase?.rawOutput ?? 'No evidence'}</code></div>
+          <div className="verification-statuses">
+            <StatusLine label="Reference · format" status={formatStatus(referenceCase)} />
+            <StatusLine label="Candidate · format" status={formatStatus(candidateCase)} />
+            <StatusLine label="Candidate · semantic category" status={semanticStatus(candidateCase)} />
+            <StatusLine label="Candidate · overall contract" status={candidateCase?.validation.status ?? 'inconclusive'} />
+          </div>
           <ul>{(candidateCase?.validation.checks ?? []).map((check) => <li key={check.ruleId} className={check.status}><span aria-hidden="true">{check.status === 'passed' ? '●' : check.status === 'failed' ? '×' : '!'}</span><span><b>{check.label}</b> — {check.detail}</span></li>)}</ul>
         </div>
       </details>)}
@@ -222,6 +221,21 @@ function ComparisonDetails({ result, authenticEvidence }: { result: ComparisonRe
     {authenticEvidence && <div className="authentic-evidence"><strong>Authentic request evidence</strong><p>Total reported cost: {authenticEvidence.totalCostUsd === null ? 'not reported' : `$${authenticEvidence.totalCostUsd.toFixed(6)}`}</p>{authenticEvidence.evidence.flatMap((model) => model.cases).map(({ caseId, result: modelResult }) => <div key={`${modelResult.requestedModel}-${caseId}`}><span>{caseId} · {modelResult.requestedModel}</span><small>HTTP {modelResult.error?.status ?? 200} · effective {modelResult.effectiveModel ?? 'not reported'} · request ID {modelResult.requestId ?? 'not reported'} · tokens {modelResult.usage.total_tokens ?? 'not reported'}</small></div>)}</div>}
     <div className="comparison-reasons"><strong>Decision reasons</strong>{result.reasons.map((reason) => <p key={reason}>{reason}</p>)}</div>
   </section>
+}
+
+function formatStatus(item: { rawOutput: string | null; validation: { checks: Array<{ ruleId: string; status: 'passed' | 'failed' | 'inconclusive' }> } } | undefined) {
+  if (!item) return 'inconclusive'
+  return item.validation.checks.find((check) => check.ruleId === 'json-valid')?.status ?? 'inconclusive'
+}
+
+function semanticStatus(item: { validation: { checks: Array<{ ruleId: string; status: 'passed' | 'failed' | 'inconclusive' }> } } | undefined) {
+  if (!item) return 'inconclusive'
+  const checks = item.validation.checks.filter((check) => check.ruleId === 'category-allowed' || check.ruleId === 'category-matches-reference')
+  return checks.some((check) => check.status === 'failed') ? 'failed' : checks.every((check) => check.status === 'passed') ? 'passed' : 'inconclusive'
+}
+
+function StatusLine({ label, status }: { label: string; status: string }) {
+  return <span className={`verification-status ${status}`}><b>{label}</b><strong>{status}</strong></span>
 }
 
 function ModelSelect({ label, value, model }: { label: string; value: string; model: string }) {
