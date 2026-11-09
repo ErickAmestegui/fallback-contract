@@ -1,0 +1,68 @@
+OTARI LAB - MISSION 09/16
+AUTHENTIC MODEL COMPARISON
+
+Status: PARTIAL
+Date: 2026-11-09
+
+Backend:
+- Cloudflare workerd remains blocked by HTTP 403 HTML from Otari.
+- A private Node.js backend was added at scripts/node-backend.ts. It binds
+  only to 127.0.0.1, serves the built UI, accepts only POST /api/compare,
+  keeps OTARI_API_KEY in process environment, and makes no public deployment.
+- The same src/otari/client.ts and deterministic evaluation modules are used.
+- The private backend served GET /api/status and the built UI successfully.
+
+Authentic run:
+- Exactly three fixed support-card cases were sent to each model, sequentially
+  (6 completions total; one request at a time).
+- Reference: openai/gpt-oss-20b, max_tokens=512, reasoning_effort=low,
+  response_format=json_object.
+- Candidate: alibaba/qwen3-32b, max_tokens=256, /no_think prefix, no
+  response_format.
+- All six responses returned HTTP 200, finish_reason=stop, effective models
+  matching the requested models, and unique Otari request IDs.
+- All six responses were valid JSON syntax but failed the contract categories
+  and/or urgency values. The reference therefore did not establish a valid
+  baseline. The deterministic result was INCONCLUSIVE, not a fabricated
+  REJECT or APPROVE.
+- Full redacted evidence, including model metadata, outputs, request IDs,
+  usage and validation checks:
+  docs/mission-09-authentic-result.json
+- Reported completion cost sum: US$0.000101. No reasoning content or secrets
+  were stored.
+
+Budget:
+- A preflight GET /api/v1/key/budget returned HTTP 200, but the first
+  extraction expected the wrong field names and did not preserve a usable
+  baseline. This is an evidence-quality limitation.
+- A postflight GET returned budgets_enforced=true, limit_usd=5.0,
+  used_usd=0.101199 and remaining_usd=4.898801. The displayed budget usage
+  includes prior account activity; it must not be attributed entirely to
+  this run.
+
+Code changes:
+- Client now preserves HTTP status/codes for non-JSON upstream error bodies
+  and normalizes numeric usage values returned as strings.
+- Added authentic evidence types and the private Node comparison backend.
+- Added an authenticated-comparison UI action and evidence panel. Local
+  fixtures remain separate and labelled LOCAL TEST / DEMO.
+- Added regression coverage for HTML 403 completion responses and numeric
+  string usage.
+
+Validation:
+- The authentic endpoint was exercised successfully once.
+- The initial test run exposed and then fixed the non-JSON/error-code issue.
+- Final validation passed: typecheck, lint, 13 tests and production build.
+- No public service was started.
+
+Limitations:
+- The Worker path is not resolved; only the private Node path is evidenced.
+- No browser automation was available for a new screenshot in this run.
+- The UI action requires the private Node backend and is not a public
+  deployment path.
+- No further Otari completions should be made in this mission.
+
+Verdict: PARTIAL. Authentic end-to-end Node integration is proven with
+honest INCONCLUSIVE output and preserved evidence; Worker connectivity,
+baseline-quality prompts/contract calibration, screenshot evidence and
+public deployment remain unresolved.

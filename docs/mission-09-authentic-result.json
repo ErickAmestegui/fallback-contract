@@ -1,0 +1,527 @@
+{
+  "comparison": {
+    "contract": {
+      "id": "support-card-classification-v1",
+      "version": "1.0.0",
+      "schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "urgency",
+          "action"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "lost_or_stolen_card",
+              "change_pin",
+              "card_arrival"
+            ]
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "allowedCategories": [
+        "lost_or_stolen_card",
+        "change_pin",
+        "card_arrival"
+      ],
+      "cases": [
+        {
+          "id": "lost-card-001",
+          "message": "I lost my debit card and need to freeze it.",
+          "referenceCategory": "lost_or_stolen_card"
+        },
+        {
+          "id": "pin-001",
+          "message": "I need to change the PIN on my card.",
+          "referenceCategory": "change_pin"
+        },
+        {
+          "id": "arrival-001",
+          "message": "My replacement card has not arrived yet.",
+          "referenceCategory": "card_arrival"
+        }
+      ],
+      "rules": [
+        {
+          "id": "json-valid",
+          "label": "Valid JSON according to the contract"
+        },
+        {
+          "id": "category-allowed",
+          "label": "Category is in the allowed set"
+        },
+        {
+          "id": "category-matches-reference",
+          "label": "Category matches the reference"
+        },
+        {
+          "id": "required-fields",
+          "label": "Required fields have the expected types"
+        },
+        {
+          "id": "no-unknown-fields",
+          "label": "No unknown fields are present"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "id": "lost-card-001",
+        "message": "I lost my debit card and need to freeze it.",
+        "referenceCategory": "lost_or_stolen_card"
+      },
+      {
+        "id": "pin-001",
+        "message": "I need to change the PIN on my card.",
+        "referenceCategory": "change_pin"
+      },
+      {
+        "id": "arrival-001",
+        "message": "My replacement card has not arrived yet.",
+        "referenceCategory": "card_arrival"
+      }
+    ],
+    "reference": {
+      "role": "reference",
+      "requestedModel": "openai/gpt-oss-20b",
+      "effectiveModel": "openai/gpt-oss-20b",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"card security\",\"urgency\":\"high\",\"action\":\"Contact your bank immediately to report the lost debit card and request it be frozen. You can usually do this through the bank’s mobile app, online banking portal, or by calling the customer service number on the back of your card. Once the card is frozen, order a replacement card and update any automatic payments linked to the old card.\"}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "card security",
+              "urgency": "high",
+              "action": "Contact your bank immediately to report the lost debit card and request it be frozen. You can usually do this through the bank’s mobile app, online banking portal, or by calling the customer service number on the back of your card. Once the card is frozen, order a replacement card and update any automatic payments linked to the old card."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: card security."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected lost_or_stolen_card, received card security."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "pin-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"card_services\",\"urgency\":\"normal\",\"action\":\"To change your PIN, you can use an ATM that accepts your card or log in to the mobile app and navigate to the PIN change section. If you need further assistance, let us know.\"}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "card_services",
+              "urgency": "normal",
+              "action": "To change your PIN, you can use an ATM that accepts your card or log in to the mobile app and navigate to the PIN change section. If you need further assistance, let us know."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: card_services."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected change_pin, received card_services."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "failed",
+                "detail": "Urgency or action is missing or invalid."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "arrival-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"card_delivery\",\"urgency\":\"medium\",\"action\":\"Check the delivery status in the app. If the card is still pending, contact customer support to expedite shipping or arrange a new card.\"}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "card_delivery",
+              "urgency": "medium",
+              "action": "Check the delivery status in the app. If the card is still pending, contact customer support to expedite shipping or arrange a new card."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: card_delivery."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected card_arrival, received card_delivery."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        }
+      ],
+      "technicalError": null
+    },
+    "candidate": {
+      "role": "candidate",
+      "requestedModel": "alibaba/qwen3-32b",
+      "effectiveModel": "alibaba/qwen3-32b",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "role": "candidate",
+          "rawOutput": "\n\n{\n  \"category\": \"Financial Security\",\n  \"urgency\": \"High\",\n  \"action\": \"Contact your bank immediately to report the lost debit card and request a freeze or cancellation.\"\n}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "Financial Security",
+              "urgency": "High",
+              "action": "Contact your bank immediately to report the lost debit card and request a freeze or cancellation."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: Financial Security."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected lost_or_stolen_card, received Financial Security."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "failed",
+                "detail": "Urgency or action is missing or invalid."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "pin-001",
+          "role": "candidate",
+          "rawOutput": "\n\n{\n  \"category\": \"Banking/Security\",\n  \"urgency\": \"Medium\",\n  \"action\": \"Contact your bank or card issuer to update your PIN.\"\n}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "Banking/Security",
+              "urgency": "Medium",
+              "action": "Contact your bank or card issuer to update your PIN."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: Banking/Security."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected change_pin, received Banking/Security."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "failed",
+                "detail": "Urgency or action is missing or invalid."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "arrival-001",
+          "role": "candidate",
+          "rawOutput": "\n\n{\n  \"category\": \"Account/Service Issue\",\n  \"urgency\": \"Medium\",\n  \"action\": \"Follow up with the service provider to check the status of your replacement card and request an update or expedited delivery if necessary.\"\n}",
+          "validation": {
+            "status": "failed",
+            "parsed": {
+              "category": "Account/Service Issue",
+              "urgency": "Medium",
+              "action": "Follow up with the service provider to check the status of your replacement card and request an update or expedited delivery if necessary."
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the contract",
+                "status": "failed",
+                "detail": "JSON matches the output schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "failed",
+                "detail": "Unexpected category: Account/Service Issue."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "failed",
+                "detail": "Expected card_arrival, received Account/Service Issue."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "failed",
+                "detail": "Urgency or action is missing or invalid."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        }
+      ],
+      "technicalError": null
+    },
+    "contractId": "support-card-classification-v1",
+    "contractVersion": "1.0.0",
+    "decision": "INCONCLUSIVE",
+    "reasons": [
+      "Reference output does not establish a valid baseline for comparison."
+    ],
+    "evidence": "otari"
+  },
+  "evidence": [
+    {
+      "role": "reference",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "result": {
+            "requestedModel": "openai/gpt-oss-20b",
+            "effectiveModel": "openai/gpt-oss-20b",
+            "requestId": "a0d8ef80-fcb3-4bef-a81c-fca5563f6c84",
+            "finishReason": "stop",
+            "content": "{\"category\":\"card security\",\"urgency\":\"high\",\"action\":\"Contact your bank immediately to report the lost debit card and request it be frozen. You can usually do this through the bank’s mobile app, online banking portal, or by calling the customer service number on the back of your card. Once the card is frozen, order a replacement card and update any automatic payments linked to the old card.\"}",
+            "usage": {
+              "prompt_tokens": 92,
+              "completion_tokens": 131,
+              "total_tokens": 223,
+              "cost_usd": "0.000021"
+            },
+            "status": "ok",
+            "error": null
+          }
+        },
+        {
+          "caseId": "pin-001",
+          "result": {
+            "requestedModel": "openai/gpt-oss-20b",
+            "effectiveModel": "openai/gpt-oss-20b",
+            "requestId": "9215b01a-73a4-4944-b88e-0b172cb1947e",
+            "finishReason": "stop",
+            "content": "{\"category\":\"card_services\",\"urgency\":\"normal\",\"action\":\"To change your PIN, you can use an ATM that accepts your card or log in to the mobile app and navigate to the PIN change section. If you need further assistance, let us know.\"}",
+            "usage": {
+              "prompt_tokens": 91,
+              "completion_tokens": 91,
+              "total_tokens": 182,
+              "cost_usd": "0.000015"
+            },
+            "status": "ok",
+            "error": null
+          }
+        },
+        {
+          "caseId": "arrival-001",
+          "result": {
+            "requestedModel": "openai/gpt-oss-20b",
+            "effectiveModel": "openai/gpt-oss-20b",
+            "requestId": "3186a751-325a-4f72-a130-484551202626",
+            "finishReason": "stop",
+            "content": "{\"category\":\"card_delivery\",\"urgency\":\"medium\",\"action\":\"Check the delivery status in the app. If the card is still pending, contact customer support to expedite shipping or arrange a new card.\"}",
+            "usage": {
+              "prompt_tokens": 89,
+              "completion_tokens": 86,
+              "total_tokens": 175,
+              "cost_usd": "0.000015"
+            },
+            "status": "ok",
+            "error": null
+          }
+        }
+      ]
+    },
+    {
+      "role": "candidate",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "result": {
+            "requestedModel": "alibaba/qwen3-32b",
+            "effectiveModel": "alibaba/qwen3-32b",
+            "requestId": "521ecba5-6732-47f1-8577-3cafbd0e13a2",
+            "finishReason": "stop",
+            "content": "\n\n{\n  \"category\": \"Financial Security\",\n  \"urgency\": \"High\",\n  \"action\": \"Contact your bank immediately to report the lost debit card and request a freeze or cancellation.\"\n}",
+            "usage": {
+              "prompt_tokens": 48,
+              "completion_tokens": 45,
+              "total_tokens": 93,
+              "cost_usd": "0.000016"
+            },
+            "status": "ok",
+            "error": null
+          }
+        },
+        {
+          "caseId": "pin-001",
+          "result": {
+            "requestedModel": "alibaba/qwen3-32b",
+            "effectiveModel": "alibaba/qwen3-32b",
+            "requestId": "1367a02f-4340-4892-ba40-dc6defe7e9aa",
+            "finishReason": "stop",
+            "content": "\n\n{\n  \"category\": \"Banking/Security\",\n  \"urgency\": \"Medium\",\n  \"action\": \"Contact your bank or card issuer to update your PIN.\"\n}",
+            "usage": {
+              "prompt_tokens": 47,
+              "completion_tokens": 41,
+              "total_tokens": 88,
+              "cost_usd": "0.000015"
+            },
+            "status": "ok",
+            "error": null
+          }
+        },
+        {
+          "caseId": "arrival-001",
+          "result": {
+            "requestedModel": "alibaba/qwen3-32b",
+            "effectiveModel": "alibaba/qwen3-32b",
+            "requestId": "f71c2203-3398-46da-b9cc-5ca93bd4b4f1",
+            "finishReason": "stop",
+            "content": "\n\n{\n  \"category\": \"Account/Service Issue\",\n  \"urgency\": \"Medium\",\n  \"action\": \"Follow up with the service provider to check the status of your replacement card and request an update or expedited delivery if necessary.\"\n}",
+            "usage": {
+              "prompt_tokens": 45,
+              "completion_tokens": 55,
+              "total_tokens": 100,
+              "cost_usd": "0.000019"
+            },
+            "status": "ok",
+            "error": null
+          }
+        }
+      ]
+    }
+  ],
+  "totalCostUsd": 0.000101
+}

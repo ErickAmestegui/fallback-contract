@@ -18,7 +18,7 @@ describe('callOtari', () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       model: 'openai/gpt-oss-20b',
       choices: [{ finish_reason: 'stop', message: { content: '{"category":"lost_or_stolen_card"}' } }],
-      usage: { prompt_tokens: 10, completion_tokens: 8, total_tokens: 18, cost_usd: 0.0001 },
+      usage: { prompt_tokens: '10', completion_tokens: '8', total_tokens: '18', cost_usd: '0.0001' },
     }), {
       status: 200,
       headers: { 'Otari-Request-ID': 'req-test-001', 'Content-Type': 'application/json' },
@@ -55,6 +55,24 @@ describe('callOtari', () => {
     expect(result.status).toBe('inconclusive')
     expect(result.error).toMatchObject({ status: 401, code: 'invalid_api_key' })
     expect(result.error?.message).not.toContain('secret details')
+  })
+
+  it('preserves a non-JSON upstream HTTP status for completions', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response('<html>forbidden</html>', {
+      status: 403,
+      headers: { 'Content-Type': 'text/html' },
+    }))
+
+    const result = await callOtari(
+      { OTARI_API_KEY: 'test-secret-never-logged' },
+      { model: 'openai/gpt-oss-20b', messages: [{ role: 'user', content: 'test' }], maxTokens: 32 },
+      fetcher,
+    )
+
+    expect(result).toMatchObject({
+      status: 'inconclusive',
+      error: { status: 403, code: 'http_403' },
+    })
   })
 
   it('lists models without sending a completion request', async () => {

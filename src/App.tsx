@@ -4,6 +4,7 @@ import type { BackendStatus } from './contracts/support-card'
 import { CONTRACT_ID, CONTRACT_RULES, MODEL_OPTIONS, SUPPORT_CARD_CONTRACT } from './contracts/support-card'
 import { decideComparison } from './evaluation/decision'
 import { LOCAL_FIXTURES } from './evaluation/fixtures'
+import type { AuthenticComparisonResponse } from './evaluation/authentic'
 import type { ComparisonResult } from './evaluation/types'
 import './App.css'
 
@@ -24,6 +25,8 @@ function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [demoMode, setDemoMode] = useState<keyof typeof LOCAL_FIXTURES>('approve')
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
+  const [authenticEvidence, setAuthenticEvidence] = useState<AuthenticComparisonResponse | null>(null)
+  const [authenticStatus, setAuthenticStatus] = useState<'idle' | 'running' | 'error'>('idle')
 
   useEffect(() => {
     fetch('/api/status')
@@ -52,7 +55,23 @@ function App() {
       reference: fixture.reference,
       candidate: fixture.candidate,
     }))
+    setAuthenticEvidence(null)
     setActiveSection('executions')
+  }
+
+  const runAuthenticComparison = async () => {
+    setAuthenticStatus('running')
+    try {
+      const response = await fetch('/api/compare', { method: 'POST' })
+      if (!response.ok) throw new Error('Authentic comparison unavailable')
+      const result = await response.json() as AuthenticComparisonResponse
+      setComparison(result.comparison)
+      setAuthenticEvidence(result)
+      setAuthenticStatus('idle')
+      setActiveSection('executions')
+    } catch {
+      setAuthenticStatus('error')
+    }
   }
 
   return (
@@ -126,6 +145,8 @@ function App() {
             </div>
             <button className="primary-button disabled-button" type="button" disabled><Play size={16} fill="currentColor" /> Run comparison <span>Evaluation unavailable</span></button>
             <p className="disabled-explanation">Connect an evaluation backend before running live requests.</p>
+            <button className="authentic-button" type="button" onClick={runAuthenticComparison} disabled={authenticStatus === 'running'}><Play size={15} fill="currentColor" /> {authenticStatus === 'running' ? 'Running authentic comparison…' : 'Run authentic comparison'} <span>Private Node backend</span></button>
+            {authenticStatus === 'error' && <p className="authentic-error" role="alert">Private backend unavailable or comparison inconclusive.</p>}
             <div className="local-demo-controls">
               <label htmlFor="demo-mode">Local test fixture</label>
               <div>
@@ -150,7 +171,7 @@ function App() {
           </div>
         </section>
 
-        {comparison && <ComparisonDetails result={comparison} />}
+        {comparison && <ComparisonDetails result={comparison} authenticEvidence={authenticEvidence} />}
 
         <section className="lower-grid" id="contracts">
           <div className="panel contract-panel">
@@ -176,7 +197,7 @@ function App() {
   )
 }
 
-function ComparisonDetails({ result }: { result: ComparisonResult }) {
+function ComparisonDetails({ result, authenticEvidence }: { result: ComparisonResult; authenticEvidence: AuthenticComparisonResponse | null }) {
   const rows = result.reference.cases.map((referenceCase) => ({
     referenceCase,
     candidateCase: result.candidate.cases.find((candidateCase) => candidateCase.caseId === referenceCase.caseId),
@@ -184,7 +205,7 @@ function ComparisonDetails({ result }: { result: ComparisonResult }) {
 
   return <section className="comparison-details panel" id="comparison-results" aria-live="polite">
     <div className="panel-heading compact">
-      <div><span className="panel-number">05</span><div><h2>Comparison results</h2><p>LOCAL TEST / DEMO fixture · no Otari request was made.</p></div></div>
+      <div><span className="panel-number">05</span><div><h2>Comparison results</h2><p>{result.evidence === 'otari' ? 'AUTHENTIC OTARI EVIDENCE · private Node backend.' : 'LOCAL TEST / DEMO fixture · no Otari request was made.'}</p></div></div>
       <span className="status-tag neutral">{result.evidence}</span>
     </div>
     <div className="comparison-table" role="table" aria-label="Local comparison results">
@@ -198,6 +219,7 @@ function ComparisonDetails({ result }: { result: ComparisonResult }) {
         </div>
       </details>)}
     </div>
+    {authenticEvidence && <div className="authentic-evidence"><strong>Authentic request evidence</strong><p>Total reported cost: {authenticEvidence.totalCostUsd === null ? 'not reported' : `$${authenticEvidence.totalCostUsd.toFixed(6)}`}</p>{authenticEvidence.evidence.flatMap((model) => model.cases).map(({ caseId, result: modelResult }) => <div key={`${modelResult.requestedModel}-${caseId}`}><span>{caseId} · {modelResult.requestedModel}</span><small>HTTP {modelResult.error?.status ?? 200} · effective {modelResult.effectiveModel ?? 'not reported'} · request ID {modelResult.requestId ?? 'not reported'} · tokens {modelResult.usage.total_tokens ?? 'not reported'}</small></div>)}</div>}
     <div className="comparison-reasons"><strong>Decision reasons</strong>{result.reasons.map((reason) => <p key={reason}>{reason}</p>)}</div>
   </section>
 }

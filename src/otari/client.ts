@@ -33,6 +33,12 @@ const emptyUsage = (): OtariUsage => ({
   cost_usd: null,
 })
 
+function nullableNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value)
+  return null
+}
+
 export async function callOtari(
   env: OtariEnv,
   request: OtariChatRequest,
@@ -75,7 +81,12 @@ export async function callOtari(
       signal: controller.signal,
     })
     const requestId = response.headers.get('Otari-Request-ID')
-    const payload = (await response.json()) as OtariChatResponse
+    let payload: OtariChatResponse = {}
+    try {
+      payload = (await response.json()) as OtariChatResponse
+    } catch {
+      payload = {}
+    }
 
     if (!response.ok) {
       return {
@@ -88,7 +99,7 @@ export async function callOtari(
         status: 'inconclusive',
         error: {
           status: response.status,
-          code: payload.error?.code ?? response.headers.get('Otari-Error-Code'),
+          code: payload.error?.code ?? response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
           message: 'Otari no pudo completar la solicitud.',
         },
       }
@@ -102,10 +113,10 @@ export async function callOtari(
       finishReason: payload.choices?.[0]?.finish_reason ?? null,
       content: payload.choices?.[0]?.message?.content ?? null,
       usage: {
-        prompt_tokens: usage.prompt_tokens ?? null,
-        completion_tokens: usage.completion_tokens ?? null,
-        total_tokens: usage.total_tokens ?? null,
-        cost_usd: usage.cost_usd ?? null,
+        prompt_tokens: nullableNumber(usage.prompt_tokens),
+        completion_tokens: nullableNumber(usage.completion_tokens),
+        total_tokens: nullableNumber(usage.total_tokens),
+        cost_usd: nullableNumber(usage.cost_usd),
       },
       status: 'ok',
       error: null,
