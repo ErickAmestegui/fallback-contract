@@ -1,0 +1,94 @@
+OTARI LAB - MISION 07/16
+FASE 7 - BASE TECNICA
+
+Estado: PARCIAL
+Fecha: 2026-11-08
+
+Proyecto creado en:
+C:\Users\emili\.codync\bots\48a1b885-f59a-402d-a4a4-0e03798aadc7\workspace\fallback-contract
+
+Rama:
+hackathon/mozilla-developers-wilding-2026
+
+Scaffolding:
+- create-cloudflare v2.74.9
+- React TypeScript sobre Workers with Assets
+- Vite 8.3.6
+- Wrangler 4.158.0
+- TypeScript 7.0.2
+- React 19.3.1
+- Ajv instalado para el motor de la siguiente mision
+- Vitest 5.1.0
+- lucide-react instalado para iconografia accesible
+
+Estructura creada:
+- src/App.tsx y src/App.css: interfaz inicial premium, responsive y sin datos
+  de evaluacion inventados.
+- src/contracts/support-card.ts: identificadores y tipos del contrato inicial.
+- src/otari/client.ts: cliente HTTP tipado server-side, timeout, headers,
+  request ID, modelo efectivo, usage y errores redacted.
+- src/otari/types.ts: tipos de request/resultados.
+- worker/index.ts: GET /api/status y rechazo seguro de rutas no implementadas.
+- tests/otari-client.test.ts: ausencia de secreto, respuesta 200 y fallo 401.
+- vitest.config.ts: tests aislados del plugin Cloudflare de Vite.
+- docs/otari-mission-07-report.txt: este informe.
+
+Endpoints locales:
+- GET /api/status -> estado real de conectividad frontend-Worker.
+- Rutas /api no implementadas -> HTTP 404 explicito.
+- No se habilitaron tools, completions ni proxy publico.
+
+Integracion Otari:
+- Base server-side configurada en https://api.otari.ai/api/v1.
+- El cliente usa Otari-Key solo desde el Worker.
+- Acepta OTARI-Request-ID, modelo efectivo, finish_reason, usage y
+  Otari-Error-Code sin devolver secretos ni razonamiento.
+- No se realizo una completion facturable.
+- No se hizo GET /models en esta mision; por tanto la integracion queda
+  preparada y tipada, pero no se declara conectividad Otari en vivo.
+- La UI muestra "Otari no verificado" y no presenta request IDs, costes ni
+  decisiones reales.
+
+Validaciones ejecutadas:
+- npm run typecheck: PASS
+- npm test: PASS, 3 tests
+- npm run build: PASS, Worker y cliente Vite generados
+- npm run lint: PASS
+- npm run dev -- --host 127.0.0.1: servidor local iniciado.
+- GET http://127.0.0.1:5173/: HTTP 200.
+- GET http://127.0.0.1:5173/api/status: HTTP 200 con status=ok,
+  otari=not_checked y contractId=support-card-classification-v1.
+- Auditoria del bundle: OTARI_API_KEY y Otari-Key no aparecen en el cliente;
+  la cadena publica api.otari.ai aparece solo como etiqueta visual del gateway.
+- .dev.vars, .env y dist estan ignorados por Git.
+
+Incidencias y correcciones:
+1. La primera invocacion de C3 incluyo una opcion no soportada y no creo
+   archivos. Se repitio con la variante oficial react-ts.
+2. Vitest intentaba crear un segundo servidor con el plugin Cloudflare; se
+   aislo mediante vitest.config.ts.
+3. La resolucion ESM del Worker exigio extension .js en el import de tipo; se
+   corrigio sin alterar el runtime.
+4. El proceso de C3 termino con un error nativo de Node en Windows despues de
+   completar el scaffolding y commit inicial; el repositorio y archivos fueron
+   verificados y el build funciona.
+
+Commit inicial de integracion:
+- 57d1477 Initialize web application via create-cloudflare CLI
+  (commit raiz generado por C3; contiene el esqueleto oficial, no aun el
+  cliente Otari).
+- El commit de integracion Otari se creara al cerrar esta mision y se
+  identificara en el registro Git.
+
+Pendiente para Mision 08:
+- Implementar Ajv y reglas deterministas.
+- Implementar decision engine APPROVE/REJECT/INCONCLUSIVE.
+- Implementar endpoint de comparacion con limites.
+- Ejecutar pruebas reales autorizadas con ambos modelos.
+- Construir resultados, diferencias y panel de evidencia real.
+
+Dictamen:
+PARCIAL. La base técnica, UI inicial, Worker local, cliente tipado y pruebas
+locales estan listos. La conectividad Otari en vivo y el motor de contratos se
+reservan para las misiones posteriores; no se afirma que la integracion real
+este demostrada por mocks.

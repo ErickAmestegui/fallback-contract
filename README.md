@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# Fallback Contract
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Base técnica de una puerta para aprobar o rechazar sustituciones de modelos
+según contratos funcionales. El proyecto usa React + TypeScript + Vite en
+Cloudflare Workers, con el gateway Otari preparado server-side.
 
-Currently, two official plugins are available:
+## Misión 07
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Esta versión contiene la interfaz inicial y el endpoint local `GET /api/status`.
+No ejecuta comparaciones ni muestra resultados inventados. La interfaz marca
+claramente que la evaluación real pertenece a una misión posterior.
 
-## React Compiler
+## Desarrollo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+La clave de Otari no se configura en el frontend. Para una futura ejecución
+local del Worker, usar un secreto de Wrangler (`wrangler secret put
+OTARI_API_KEY`) o el mecanismo equivalente del entorno; no crear `.env` con
+credenciales ni incluirla en Git.
+
+## Checks
+
+```bash
+npm run typecheck
+npm test
+npm run build
+npm run lint
+```
+
+Gateway configurado server-side: `https://api.otari.ai/api/v1`.
+La integración no se presenta como verificada por una completion en esta
+misión; solo se validan tipos, errores y respuestas controladas localmente.
+
+## Seguridad
+
+- `OTARI_API_KEY` nunca llega al bundle React.
+- No se habilitan herramientas web.
+- No se acepta código arbitrario.
+- Los errores upstream se redactan antes de devolverlos.
