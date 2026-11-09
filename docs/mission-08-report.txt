@@ -1,0 +1,63 @@
+OTARI LAB - MISSION 08/16
+DETERMINISTIC FALLBACK CONTRACT ENGINE
+
+Status: PARTIAL
+Scope: Local deterministic evaluation only. No Otari requests were made.
+
+Implemented:
+- src/contracts/support-card.ts: versioned support-card-classification-v1
+  contract (1.0.0), JSON Schema, three synthetic/publicly-labelled cases,
+  allowed categories and mandatory rule identifiers.
+- src/evaluation/parse.ts: strict JSON parsing; rejects empty values, markdown
+  fences, extra text and non-object JSON.
+- src/evaluation/validate.ts: Ajv schema validation plus explicit category,
+  reference-category, required-field and unknown-field checks.
+- src/evaluation/decision.ts: deterministic APPROVE, REJECT and INCONCLUSIVE
+  policy. Reference/candidate evidence must cover exactly the same cases.
+  Technical errors and missing evidence never become functional regressions.
+- src/evaluation/fixtures.ts: clearly labelled LOCAL TEST / DEMO fixtures for
+  APPROVE, REJECT and INCONCLUSIVE.
+- src/evaluation/types.ts: typed rule, case, model and comparison results.
+- src/App.tsx and src/App.css: local fixture selector, result decision,
+  comparison table, expandable per-case rule details and reasons. Live
+  comparison remains disabled because no evaluation backend is connected.
+
+Reproducible checks:
+- npm run typecheck: PASS
+- npm run lint: PASS (one unused-test-helper warning was removed afterwards)
+- npm test -- --run: PASS, 2 files / 12 tests
+- npm run build: PASS (Worker and client bundles)
+- Deterministic examples:
+  - APPROVE: both models pass all three shared cases.
+  - REJECT: candidate returns card_arrival for pin-001; category/reference
+    checks fail.
+  - INCONCLUSIVE: candidate has no evidence for pin-001; decision is not a
+    model regression.
+
+Tests cover valid output, malformed JSON, fenced output, missing fields,
+wrong types, unknown fields, disallowed and mismatched categories, both
+models passing, confirmed candidate regression, missing evidence and a
+technical-error path.
+
+Security and integration limits:
+- No calls to Otari, no completions, no deployment and no public publishing.
+- No request ID, cost or upstream evidence is fabricated; fixtures are local.
+- OTARI_API_KEY remains Worker-only. The Worker -> Otari HTTP 403 documented
+  in Mission 07 is unchanged and was not investigated in this mission.
+- No arbitrary visitor code is executed.
+
+Visual evidence:
+- The local states are wired into the UI and deterministic tests verify their
+  decisions. New browser screenshots were not generated in this run because
+  the workspace has no browser automation dependency available. Existing
+  responsive screenshots remain valid for the unchanged orange shell.
+
+Pending for Mission 09:
+- Connect a real, authorized evaluation backend and persist authentic
+  evidence without weakening the technical-error policy.
+- Add browser-based screenshot capture for the three local states.
+- Re-test Worker connectivity only under a separately authorized mission.
+
+Verdict: PARTIAL. The local deterministic engine and UI integration are
+implemented and tested; authentic Worker/Otari comparison and new state
+screenshots remain pending.

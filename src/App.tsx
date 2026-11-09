@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { ArrowDown, Check, ChevronDown, CircleAlert, FileCheck2, Gauge, Menu, Play, ShieldCheck, Sparkles, X } from 'lucide-react'
 import type { BackendStatus } from './contracts/support-card'
-import { CONTRACT_ID, CONTRACT_RULES, MODEL_OPTIONS } from './contracts/support-card'
+import { CONTRACT_ID, CONTRACT_RULES, MODEL_OPTIONS, SUPPORT_CARD_CONTRACT } from './contracts/support-card'
+import { decideComparison } from './evaluation/decision'
+import { LOCAL_FIXTURES } from './evaluation/fixtures'
+import type { ComparisonResult } from './evaluation/types'
 import './App.css'
 
 type ConnectionState = 'loading' | 'connected' | 'error'
@@ -19,6 +22,8 @@ function App() {
   const [backendStatus, setBackendStatus] = useState<BackendStatus | null>(null)
   const [activeSection, setActiveSection] = useState('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [demoMode, setDemoMode] = useState<keyof typeof LOCAL_FIXTURES>('approve')
+  const [comparison, setComparison] = useState<ComparisonResult | null>(null)
 
   useEffect(() => {
     fetch('/api/status')
@@ -37,6 +42,17 @@ function App() {
     setActiveSection(target)
     setMobileMenuOpen(false)
     document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const runLocalFixture = () => {
+    const fixture = LOCAL_FIXTURES[demoMode]
+    setComparison(decideComparison({
+      contract: SUPPORT_CARD_CONTRACT,
+      cases: SUPPORT_CARD_CONTRACT.cases,
+      reference: fixture.reference,
+      candidate: fixture.candidate,
+    }))
+    setActiveSection('executions')
   }
 
   return (
@@ -96,7 +112,7 @@ function App() {
           <div className="panel config-panel">
             <div className="panel-heading">
               <div><span className="panel-number">01</span><div><h2>Configure a comparison</h2><p>Choose the models that will run against the same contract.</p></div></div>
-              <span className="demo-badge">CONFIGURED</span>
+              <span className="demo-badge">LOCAL TEST / DEMO</span>
             </div>
             <div className="model-flow">
               <ModelSelect label="Current model · reference" value="GPT OSS 20B" model={MODEL_OPTIONS.reference} />
@@ -110,18 +126,31 @@ function App() {
             </div>
             <button className="primary-button disabled-button" type="button" disabled><Play size={16} fill="currentColor" /> Run comparison <span>Evaluation unavailable</span></button>
             <p className="disabled-explanation">Connect an evaluation backend before running live requests.</p>
+            <div className="local-demo-controls">
+              <label htmlFor="demo-mode">Local test fixture</label>
+              <div>
+                <select id="demo-mode" value={demoMode} onChange={(event) => setDemoMode(event.target.value as keyof typeof LOCAL_FIXTURES)}>
+                  <option value="approve">APPROVE · all rules pass</option>
+                  <option value="reject">REJECT · candidate regression</option>
+                  <option value="inconclusive">INCONCLUSIVE · missing evidence</option>
+                </select>
+                <button className="local-run-button" type="button" onClick={runLocalFixture}>Run local test</button>
+              </div>
+            </div>
           </div>
 
           <div className="panel decision-panel" id="executions">
-            <div className="panel-heading compact"><div><span className="panel-number">02</span><h2>Decision</h2></div><span className="status-tag neutral">NOT RUN</span></div>
+            <div className="panel-heading compact"><div><span className="panel-number">02</span><h2>Decision</h2></div><span className={`status-tag ${comparison ? `decision-${comparison.decision.toLowerCase()}` : 'neutral'}`}>{comparison?.decision ?? 'NOT RUN'}</span></div>
             <div className="decision-empty">
-              <div className="decision-orbit"><Gauge size={28} /></div>
-              <h3>No decision yet</h3>
-              <p>Run a comparison to see whether the candidate preserves the contract.</p>
+              <div className={`decision-orbit ${comparison ? `decision-orbit-${comparison.decision.toLowerCase()}` : ''}`}><Gauge size={28} /></div>
+              <h3>{comparison?.decision ?? 'No decision yet'}</h3>
+              <p>{comparison ? comparison.reasons[0] : 'Run a comparison to see whether the candidate preserves the contract.'}</p>
             </div>
             <div className="decision-legend"><span><i className="dot approve" /> APPROVE</span><span><i className="dot reject" /> REJECT</span><span><i className="dot inconclusive" /> INCONCLUSIVE</span></div>
           </div>
         </section>
+
+        {comparison && <ComparisonDetails result={comparison} />}
 
         <section className="lower-grid" id="contracts">
           <div className="panel contract-panel">
@@ -129,7 +158,7 @@ function App() {
             <div className="rules-list">
               {CONTRACT_RULES.map((rule) => <div className="rule-row" key={rule}><span className="rule-state configured" aria-hidden="true" /><span className="rule-copy"><strong>{rule}</strong><small>Configured · not evaluated</small></span><span className="rule-lock">Required</span></div>)}
             </div>
-            <div className="contract-meta"><div><span>TEST CASES</span><strong>0 configured</strong></div><div><span>VALIDATOR</span><strong><ShieldCheck size={15} /> Ajv + rules</strong></div><div><span>MODE</span><strong>Evidence only</strong></div></div>
+            <div className="contract-meta"><div><span>TEST CASES</span><strong>{SUPPORT_CARD_CONTRACT.cases.length} configured</strong></div><div><span>VALIDATOR</span><strong><ShieldCheck size={15} /> Ajv + rules</strong></div><div><span>MODE</span><strong>Evidence only</strong></div></div>
           </div>
           <div className="panel evidence-panel" id="evidence">
             <div className="panel-heading compact"><div><span className="panel-number">04</span><h2>Evidence</h2></div><span className="status-tag neutral">EMPTY</span></div>
@@ -145,6 +174,32 @@ function App() {
       </main>
     </div>
   )
+}
+
+function ComparisonDetails({ result }: { result: ComparisonResult }) {
+  const rows = result.reference.cases.map((referenceCase) => ({
+    referenceCase,
+    candidateCase: result.candidate.cases.find((candidateCase) => candidateCase.caseId === referenceCase.caseId),
+  }))
+
+  return <section className="comparison-details panel" id="comparison-results" aria-live="polite">
+    <div className="panel-heading compact">
+      <div><span className="panel-number">05</span><div><h2>Comparison results</h2><p>LOCAL TEST / DEMO fixture · no Otari request was made.</p></div></div>
+      <span className="status-tag neutral">{result.evidence}</span>
+    </div>
+    <div className="comparison-table" role="table" aria-label="Local comparison results">
+      <div className="comparison-row comparison-header" role="row"><span>Test case</span><span>Reference</span><span>Candidate</span><span>Rules</span></div>
+      {rows.map(({ referenceCase, candidateCase }) => <details className="comparison-row comparison-case" key={referenceCase.caseId}>
+        <summary><span>{referenceCase.caseId}</span><span className={`result-chip ${referenceCase.validation.status}`}>{referenceCase.validation.status}</span><span className={`result-chip ${candidateCase?.validation.status ?? 'inconclusive'}`}>{candidateCase?.validation.status ?? 'inconclusive'}</span><span>{referenceCase.validation.checks.filter((check) => check.status === 'passed').length}/{referenceCase.validation.checks.length}</span></summary>
+        <div className="comparison-expanded">
+          <div><strong>Reference output</strong><code>{referenceCase.rawOutput ?? 'No evidence'}</code></div>
+          <div><strong>Candidate output</strong><code>{candidateCase?.rawOutput ?? 'No evidence'}</code></div>
+          <ul>{(candidateCase?.validation.checks ?? []).map((check) => <li key={check.ruleId} className={check.status}><span aria-hidden="true">{check.status === 'passed' ? '●' : check.status === 'failed' ? '×' : '!'}</span><span><b>{check.label}</b> — {check.detail}</span></li>)}</ul>
+        </div>
+      </details>)}
+    </div>
+    <div className="comparison-reasons"><strong>Decision reasons</strong>{result.reasons.map((reason) => <p key={reason}>{reason}</p>)}</div>
+  </section>
 }
 
 function ModelSelect({ label, value, model }: { label: string; value: string; model: string }) {
