@@ -6,6 +6,8 @@ HTTP success as proof of compatibility.
 
 ## Public demo
 
+Demo: https://fallback-contract.netlify.app/
+
 The public-safe build is a **read-only recorded demo**. It loads the verified
 Mission 10 evidence from `public/mission-10-authentic-result.json` and does
 not make inference requests. The page labels the run `RECORDED LIVE RUN` and
@@ -58,7 +60,8 @@ npm run build
 
 The development branch is
 `hackathon/mozilla-developers-wilding-2026`. The first Otari integration
-commit is `d5027f7` (with the original scaffold at `57d1477`).
+commit is [`f5d35e3ee4c06c0a2b94de73b7af32b7c9d52c9f`](https://github.com/ErickAmestegui/fallback-contract/commit/f5d35e3ee4c06c0a2b94de73b7af32b7c9d52c9f)
+(with the original scaffold at [`57d1477`](https://github.com/ErickAmestegui/fallback-contract/commit/57d1477)).
 
 ## License
 

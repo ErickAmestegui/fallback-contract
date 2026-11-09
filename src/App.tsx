@@ -1,14 +1,11 @@
 import { useEffect, useState } from 'react'
 import { ArrowDown, Check, ChevronDown, CircleAlert, FileCheck2, Gauge, Menu, Play, ShieldCheck, Sparkles, X } from 'lucide-react'
-import type { BackendStatus } from './contracts/support-card'
 import { CONTRACT_ID, CONTRACT_RULES, MODEL_OPTIONS, SUPPORT_CARD_CONTRACT } from './contracts/support-card'
 import { decideComparison } from './evaluation/decision'
 import { LOCAL_FIXTURES } from './evaluation/fixtures'
 import type { AuthenticComparisonResponse } from './evaluation/authentic'
 import type { ComparisonResult } from './evaluation/types'
 import './App.css'
-
-type ConnectionState = 'loading' | 'connected' | 'error'
 
 const navigation = [
   { label: 'Overview', target: 'overview', icon: '⌂' },
@@ -19,26 +16,11 @@ const navigation = [
 ]
 
 function App() {
-  const [connectionState, setConnectionState] = useState<ConnectionState>('loading')
-  const [backendStatus, setBackendStatus] = useState<BackendStatus | null>(null)
   const [activeSection, setActiveSection] = useState('overview')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [demoMode, setDemoMode] = useState<keyof typeof LOCAL_FIXTURES>('approve')
   const [comparison, setComparison] = useState<ComparisonResult | null>(null)
   const [recordedRun, setRecordedRun] = useState<AuthenticComparisonResponse | null>(null)
-
-  useEffect(() => {
-    fetch('/api/status')
-      .then(async (response) => {
-        if (!response.ok) throw new Error('Backend unavailable')
-        return (await response.json()) as BackendStatus
-      })
-      .then((data) => {
-        setBackendStatus(data)
-        setConnectionState('connected')
-      })
-      .catch(() => setConnectionState('error'))
-  }, [])
 
   useEffect(() => {
     fetch('/mission-10-authentic-result.json')
@@ -101,7 +83,7 @@ function App() {
         <header className="topbar">
           <div className="eyebrow"><span className="eyebrow-dot" /> Fallback Contract <span className="slash">/</span> Decision workspace</div>
           <div className="top-actions">
-            <span className={`connection-pill ${connectionState}`} role="status"><span />{connectionState === 'loading' ? 'Connecting' : connectionState === 'connected' ? 'Backend connected' : 'Backend unavailable'}</span>
+            <span className="connection-pill connected" role="status"><span />Recorded demo · no live backend</span>
             <button className="icon-button" aria-label="Toggle theme" type="button">☼</button>
             <button className="avatar" aria-label="Account menu" type="button">EM</button>
           </div>
@@ -182,7 +164,7 @@ function App() {
         </section>
 
         <footer className="status-footer">
-          <span><span className="footer-dot" /> {backendStatus?.message ?? 'Checking backend connection…'}</span>
+          <span><span className="footer-dot" /> Recorded evidence · no live inference</span>
           <span className="footer-contract">Contract <b>{CONTRACT_ID}</b></span>
         </footer>
       </main>
