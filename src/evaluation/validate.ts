@@ -38,8 +38,9 @@ export function validateOutput(
     }
   }
 
-  const validSchema = ajv.compile(contract.schema)(parsed.value)
-  const schemaError = validSchema ? null : ajv.errors?.map((error) => `${error.instancePath || '/'} ${error.message}`).join('; ')
+  const validateSchema = ajv.compile(contract.schema)
+  const validSchema = validateSchema(parsed.value)
+  const schemaError = validSchema ? null : validateSchema.errors?.map((error) => `${error.instancePath || '/'} ${error.message}`).join('; ') ?? 'Response does not match the output schema.'
   const hasAllowedCategory = contract.allowedCategories.includes(parsed.value.category)
   const categoryMatches = parsed.value.category === testCase.referenceCategory
   const requiredFieldsValid = typeof parsed.value.urgency === 'string'

@@ -1,0 +1,66 @@
+OTARI LAB - MISSION 10/16
+STABILIZATION AND DEPLOYMENT PREPARATION
+
+Status: PARTIAL
+Date: 2026-11-09
+
+A. Audit of Mission 09 evidence
+- Contract: support-card-classification-v1, version 1.0.0.
+- Shared inputs: lost-card-001, pin-001, arrival-001.
+- The original six responses were valid JSON syntax, but both models used
+  semantic category synonyms not present in the closed enum. GPT OSS also
+  returned urgency=normal for pin-001. The schema therefore correctly
+  rejected them as functional contract violations, not parse errors.
+- The original validator had a diagnostic defect: it read ajv.errors rather
+  than the compiled validator's errors. This made failed schema checks say
+  "JSON matches the output schema." That defect is fixed.
+- Original evidence was not modified.
+
+B. Corrected authentic comparison
+- The prompt now states the exact allowed category and urgency values, asks
+  for exactly the three fields, and forbids synonyms. Both models receive
+  equivalent semantic instructions; only model-specific JSON/reasoning
+  parameters differ as documented in Mission 06.
+- Six new completions were used, sequentially and once only.
+- GPT OSS 20B: all three cases passed.
+- Qwen3 32B: lost-card-001 passed; pin-001 and arrival-001 returned fenced
+  Markdown JSON. The strict parser rejected both. This is a confirmed
+  candidate output-format regression, not a fabricated failure.
+- Deterministic decision: REJECT.
+- Reported total: US$0.000115.
+- Evidence: docs/mission-10-authentic-result.json.
+
+C. Deployment preparation
+- Extracted shared execution into src/evaluation/authentic-run.ts.
+- Added netlify/functions/compare.ts and netlify.toml.
+- Netlify function defaults to disabled, requires PUBLIC_INFERENCE_ENABLED=true,
+  a server-side PUBLIC_INFERENCE_TOKEN bearer credential, and OTARI_API_KEY.
+- It accepts only POST, ignores visitor prompts and models, uses the fixed
+  contract/cases, limits one in-process comparison at a time, rate-limits a
+  token to one request per minute, and caps each run at the fixed six model
+  calls and model-specific token limits.
+- Technical failures remain INCONCLUSIVE. No deployment or preview was made.
+- Local control tests cover disabled-by-default and unauthenticated access.
+
+Official documentation consulted:
+- https://docs.netlify.com/build/functions/overview/
+- https://docs.netlify.com/build/functions/deploy/
+
+D. Code execution
+- Not integrated. Prior experiments established that code execution is an
+  optional Otari capability, but this mission does not have a verified
+  per-request execution budget/control path. Adding it would increase spend
+  and attack surface without improving this comparison, so it remains
+  explicitly out of the deployment function.
+
+E. Quality and limits
+- No further Otari calls are planned in this mission.
+- Existing local fixtures remain separate from authentic evidence.
+- The Worker/workerd HTTP 403 was not re-investigated.
+- No public service, repository or deployment was created.
+- Final validation passed: typecheck, lint, 15 tests and production build.
+
+Verdict: PARTIAL. The authentic comparison now produces a defensible REJECT
+with complete reference evidence and a confirmed candidate formatting
+regression. A guarded Netlify-compatible function is prepared locally, but
+production compatibility and deployment remain unverified and unauthorized.

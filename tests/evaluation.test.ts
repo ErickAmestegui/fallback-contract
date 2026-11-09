@@ -29,6 +29,7 @@ describe('support-card deterministic validation', () => {
     const wrongType = validateOutput('{"category":"lost_or_stolen_card","urgency":4,"action":"Freeze"}', SUPPORT_CARD_CONTRACT, SUPPORT_CARD_CASES[0])
     const unknown = validateOutput('{"category":"lost_or_stolen_card","urgency":"high","action":"Freeze","score":1}', SUPPORT_CARD_CONTRACT, SUPPORT_CARD_CASES[0])
     expect(wrongType.status).toBe('failed')
+    expect(wrongType.checks.find((check) => check.ruleId === 'json-valid')?.detail).toContain('must be string')
     expect(unknown.checks.find((check) => check.ruleId === 'no-unknown-fields')?.status).toBe('failed')
   })
 })
