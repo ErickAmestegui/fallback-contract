@@ -5,6 +5,7 @@ import { decideComparison } from './evaluation/decision'
 import { LOCAL_FIXTURES } from './evaluation/fixtures'
 import type { AuthenticComparisonResponse } from './evaluation/authentic'
 import type { ComparisonResult } from './evaluation/types'
+import { RedTeamRunPanel } from './RedTeamRunPanel'
 import { RoutingRunPanel } from './RoutingRunPanel'
 import './App.css'
 
@@ -15,6 +16,7 @@ const navigation = [
   { label: 'Executions', target: 'executions', icon: '▷' },
   { label: 'Evidence', target: 'evidence', icon: '▤' },
   { label: 'Routing run', target: 'routing-run', icon: '⤳' },
+  { label: 'Red team run', target: 'redteam-run', icon: '⚑' },
 ]
 
 function App() {
@@ -37,7 +39,8 @@ function App() {
   const goToSection = (target: string) => {
     setActiveSection(target)
     setMobileMenuOpen(false)
-    document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    // The open mobile menu shifts the page, so scroll only after it has closed.
+    requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ behavior: 'smooth', block: 'start' })))
   }
 
   const runLocalFixture = () => {
@@ -149,6 +152,7 @@ function App() {
 
         {recordedRun && <ComparisonDetails result={recordedRun.comparison} authenticEvidence={recordedRun} />}
         <RoutingRunPanel />
+        <RedTeamRunPanel />
         {comparison && <ComparisonDetails result={comparison} authenticEvidence={null} />}
 
         <section className="lower-grid" id="contracts">

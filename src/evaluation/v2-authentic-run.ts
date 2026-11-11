@@ -92,7 +92,7 @@ export function routingRunConfigFromEnv(env: Record<string, string | undefined>)
   return errors.length ? { config: null, errors } : { config, errors: [] }
 }
 
-export function checkBudgetPreflight(budget: OtariKeyBudgetResult, config: V2RoutingRunConfig): string[] {
+export function checkBudgetPreflight(budget: OtariKeyBudgetResult, config: Pick<V2RoutingRunConfig, 'maxRunCostUsd' | 'maxExposureUsd'>): string[] {
   if (budget.status !== 'ok') return [`Budget preflight unavailable (${budget.error?.code ?? 'unknown'}).`]
   if (!budget.budgetsEnforced) return ['Budget preflight: Otari reports budgets are not enforced for this key.']
   if (budget.remainingUsd === null) return ['Budget preflight: no dollar ceiling covering every provider applies to this key.']

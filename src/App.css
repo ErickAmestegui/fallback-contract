@@ -150,6 +150,22 @@ h1 em { color: var(--accent); font-style: normal; }
 .routing-table { width: 100%; border-collapse: collapse; font: 11px var(--mono); }
 .routing-table th, .routing-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
 .routing-table th { color: var(--muted); font-weight: 400; }
+.redteam-roles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 0; padding: 0; list-style: none; background: var(--line); border-bottom: 1px solid var(--line); }
+.redteam-roles li { display: grid; align-content: start; gap: 6px; background: var(--surface); padding: 14px 16px; }
+.redteam-roles p { margin: 0; color: var(--muted); }
+.redteam-roles small { color: var(--muted); font: 10px/1.5 var(--mono); overflow-wrap: anywhere; }
+.role-step { color: var(--accent); font: 9px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+.redteam-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; padding: 16px; border-bottom: 1px solid var(--line); }
+.redteam-case { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 8px; align-content: start; }
+.redteam-case header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font: 10px var(--mono); color: var(--muted); }
+.redteam-case header .result-chip { margin-left: auto; }
+.redteam-seed { margin: 0; color: var(--muted); font-size: 12px; }
+.redteam-case blockquote { margin: 0; padding: 8px 10px; border-left: 2px solid var(--accent); overflow-wrap: anywhere; }
+.redteam-case dl { margin: 0; display: grid; gap: 6px; }
+.redteam-case dt { color: var(--muted); font: 9px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+.redteam-case dd { margin: 2px 0 0; font: 11px/1.5 var(--mono); overflow-wrap: anywhere; }
+.redteam-limits ul { margin: 6px 0 0; padding-left: 18px; }
+.redteam-limits li { margin: 3px 0; }
 .decision-empty { text-align: center; padding: 49px 30px 35px; }
 .decision-orbit { width: 58px; height: 58px; margin: 0 auto 17px; display: grid; place-items: center; border: 1px solid #9a5c34; border-radius: 50%; color: var(--amber); box-shadow: 0 0 25px rgba(255, 159, 67, .16); }
 .decision-empty h3 { margin: 0; font-size: 16px; }
@@ -186,6 +202,7 @@ h1 em { color: var(--accent); font-style: normal; }
   .sidebar { width: 210px; flex-basis: 210px; }
   .main-content { width: calc(100vw - 210px); padding: 24px; }
   .workspace-grid, .lower-grid { grid-template-columns: 1fr; }
+  .redteam-roles { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
@@ -227,6 +244,7 @@ h1 em { color: var(--accent); font-style: normal; }
   .contract-meta strong { font-size: 10px; }
   .status-footer { align-items: flex-start; flex-direction: column; gap: 8px; }
   .footer-contract { text-align: left; }
+  .redteam-cases { grid-template-columns: 1fr; padding: 12px; }
 }
 
 @media (max-width: 360px) {

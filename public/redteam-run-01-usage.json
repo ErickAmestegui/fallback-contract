@@ -1,0 +1,10 @@
+{
+  "evidenceFile": "evidence/authentic/redteam-2026-11-11T18-28-54-622Z.json",
+  "source": "GET /api/v1/usage/requests/{request_id}, response bodies unmodified",
+  "rows": [
+    {"role": "generator", "otariUsageRow": {"request_id":"df127fcc-7c3c-48b8-bc3f-80bb62a15071","status":"success","cost_usd":"0.000184","prompt_tokens":286,"completion_tokens":575,"total_tokens":861,"row_count":1}},
+    {"role": "responder", "otariUsageRow": {"request_id":"e9e82b9f-622d-4a65-b157-24e783f9335d","status":"success","cost_usd":"0.000013","prompt_tokens":178,"completion_tokens":58,"total_tokens":236,"row_count":1}},
+    {"role": "responder", "otariUsageRow": {"request_id":"9f62dd71-d5e0-4087-a549-8a5764f4eb6d","status":"success","cost_usd":"0.000013","prompt_tokens":194,"completion_tokens":51,"total_tokens":245,"row_count":1}},
+    {"role": "responder", "otariUsageRow": {"request_id":"971febdd-2d6d-44e3-874f-3a7d2bb4dd1a","status":"success","cost_usd":"0.000014","prompt_tokens":181,"completion_tokens":58,"total_tokens":239,"row_count":1}}
+  ]
+}

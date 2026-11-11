@@ -11,6 +11,8 @@
     "node-backend": "tsx scripts/node-backend.ts",
     "verify-routing-usage": "tsx scripts/verify-routing-usage.ts",
     "redact-routing-evidence": "tsx scripts/redact-routing-evidence.ts",
+    "redact-redteam-evidence": "tsx scripts/redact-redteam-evidence.ts",
+    "redteam-run": "tsx scripts/redteam-run.ts",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "test": "vitest run",

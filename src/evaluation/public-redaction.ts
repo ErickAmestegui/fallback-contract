@@ -1,4 +1,5 @@
 import type { OtariKeyBudgetResult } from '../otari/client'
+import type { RedTeamRunConfig, RedTeamRunResult } from './redteam'
 import type { V2RoutingRunConfig, V2RoutingRunResult } from './v2-authentic-run'
 
 export const REDACTED_ROUTING_FIELDS = [
@@ -28,15 +29,28 @@ export interface PublicRoutingRunResult extends Omit<V2RoutingRunResult, 'config
   budgetAfter: PublicBudgetSnapshot | null
 }
 
+export interface PublicRedTeamRunResult extends Omit<RedTeamRunResult, 'config' | 'budgetBefore' | 'budgetAfter'> {
+  publicRedaction: PublicRedaction
+  config: Omit<RedTeamRunConfig, 'maxExposureUsd'>
+  budgetBefore: PublicBudgetSnapshot
+  budgetAfter: PublicBudgetSnapshot | null
+}
+
+interface BudgetedRun {
+  config: { maxExposureUsd: number }
+  budgetBefore: OtariKeyBudgetResult
+  budgetAfter: OtariKeyBudgetResult | null
+}
+
 const publicBudget = ({ status, budgetsEnforced, error }: OtariKeyBudgetResult): PublicBudgetSnapshot => ({ status, budgetsEnforced, error })
 
-export function redactRoutingRunForPublic(run: V2RoutingRunResult, sourceFile: string, sourceSha256: string): PublicRoutingRunResult {
+function redactBudgets<T extends BudgetedRun>(run: T, sourceFile: string, sourceSha256: string) {
   const { maxExposureUsd: _maxExposureUsd, ...config } = run.config
   const before = run.budgetBefore.remainingUsd
   const after = run.budgetAfter?.remainingUsd ?? null
   return {
     publicRedaction: {
-      copy: 'redacted',
+      copy: 'redacted' as const,
       sourceFile,
       sourceSha256: sourceSha256.toUpperCase(),
       removedFields: [...REDACTED_ROUTING_FIELDS],
@@ -47,4 +61,12 @@ export function redactRoutingRunForPublic(run: V2RoutingRunResult, sourceFile: s
     budgetBefore: publicBudget(run.budgetBefore),
     budgetAfter: run.budgetAfter ? publicBudget(run.budgetAfter) : null,
   }
+}
+
+export function redactRoutingRunForPublic(run: V2RoutingRunResult, sourceFile: string, sourceSha256: string): PublicRoutingRunResult {
+  return redactBudgets(run, sourceFile, sourceSha256)
+}
+
+export function redactRedTeamRunForPublic(run: RedTeamRunResult, sourceFile: string, sourceSha256: string): PublicRedTeamRunResult {
+  return redactBudgets(run, sourceFile, sourceSha256)
 }
