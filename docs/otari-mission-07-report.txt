@@ -5,7 +5,7 @@ Estado: PARCIAL
 Fecha: 2026-11-08
 
 Proyecto creado en:
-C:\Users\emili\.codync\bots\48a1b885-f59a-402d-a4a4-0e03798aadc7\workspace\fallback-contract
+[ruta local redactada]/fallback-contract
 
 Rama:
 hackathon/mozilla-developers-wilding-2026
@@ -81,8 +81,8 @@ Validaciones ejecutadas:
   Ambas fueron tomadas con Playwright; la prueba movil no detecto overflow
   horizontal.
 - Skills consultadas realmente:
-  - frontend-design (C:\Users\emili\.codync\skills\frontend-design\SKILL.md)
-  - webapp-testing (C:\Users\emili\.codync\skills\webapp-testing\SKILL.md)
+  - frontend-design ([ruta local redactada]/frontend-design/SKILL.md)
+  - webapp-testing ([ruta local redactada]/webapp-testing/SKILL.md)
   El runtime de skills registradas no permitio invocarlas por nombre; se
   leyeron sus instrucciones locales y se aplicaron en el trabajo.
 - Auditoria del bundle: OTARI_API_KEY y Otari-Key no aparecen en el cliente;
@@ -144,7 +144,7 @@ Diagnostico de conectividad (correccion final):
 
 Refinamiento visual posterior:
 - Skills consultadas realmente: `frontend-design` y `webapp-testing`, leidas
-  desde `C:\Users\emili\.codync\skills\`. El runtime no permitio invocarlas
+  desde `[ruta local redactada]`. El runtime no permitio invocarlas
   por nombre, pero sus instrucciones locales se aplicaron.
 - La navegacion movil ahora usa un menu accesible con `aria-expanded`,
   etiquetas completas, foco visible y anclas a Overview, Compare models,

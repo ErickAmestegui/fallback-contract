@@ -35,8 +35,8 @@ Budget:
 - A preflight GET /api/v1/key/budget returned HTTP 200, but the first
   extraction expected the wrong field names and did not preserve a usable
   baseline. This is an evidence-quality limitation.
-- A postflight GET returned budgets_enforced=true, limit_usd=5.0,
-  used_usd=0.101199 and remaining_usd=4.898801. The displayed budget usage
+- A postflight GET returned budgets_enforced=true; the key's limit, used and
+  remaining amounts are [redacted 2026-11-11]. The displayed budget usage
   includes prior account activity; it must not be attributed entirely to
   this run.
 
