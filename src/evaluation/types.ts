@@ -9,42 +9,63 @@ export interface RuleCheck {
   detail: string
 }
 
-export interface ValidationResult {
+export interface ValidationResult<TParsed = SupportCardOutput> {
   status: CheckStatus
-  parsed: SupportCardOutput | null
+  parsed: TParsed | null
   checks: RuleCheck[]
   error: string | null
 }
 
-export interface CaseEvaluation {
+export interface CaseEvaluation<TParsed = SupportCardOutput> {
   caseId: string
   role: ModelRole
   rawOutput: string | null
-  validation: ValidationResult
+  requestId?: string | null
+  provider?: string | null
+  servedModel?: string | null
+  attemptCount?: number | null
+  fallback?: boolean | null
+  responseDurationMs?: number | null
+  serverTiming?: string | null
+  responseStatus?: 'ok' | 'inconclusive'
+  errorCode?: string | null
+  validation: ValidationResult<TParsed>
   evidence: 'local-fixture' | 'otari'
 }
 
-export interface ModelEvaluation {
+export interface ModelEvaluation<TParsed = SupportCardOutput> {
   role: ModelRole
   requestedModel: string
   effectiveModel: string | null
-  cases: CaseEvaluation[]
+  cases: CaseEvaluation<TParsed>[]
   technicalError: string | null
+  modelIdentityMismatch?: boolean
+  modelIdentityReasons?: string[]
+  routing?: RoutingSummary
 }
 
-export interface ComparisonInput {
-  contract: SupportCardContract
+export interface RoutingSummary {
+  policy: string
+  primary: string
+  onFailure: readonly string[]
+  servedTargets: string[]
+  fallbackCaseIds: string[]
+  maxAttemptCount: number | null
+}
+
+export interface ComparisonInput<TParsed = SupportCardOutput> {
+  contract: SupportCardContract | { id: string; version: string; cases: readonly SupportCardCase[] }
   cases: readonly SupportCardCase[]
-  reference: ModelEvaluation
-  candidate: ModelEvaluation
+  reference: ModelEvaluation<TParsed>
+  candidate: ModelEvaluation<TParsed>
 }
 
-export interface ComparisonResult {
+export interface ComparisonResult<TParsed = SupportCardOutput> {
   contractId: string
   contractVersion: string
   decision: Decision
   reasons: string[]
-  reference: ModelEvaluation
-  candidate: ModelEvaluation
+  reference: ModelEvaluation<TParsed>
+  candidate: ModelEvaluation<TParsed>
   evidence: 'local-fixture' | 'otari'
 }

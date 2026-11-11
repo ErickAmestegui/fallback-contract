@@ -1,6 +1,4 @@
-import type { SupportCardOutput } from '../contracts/support-card.js'
-
-export function parseStrictJson(raw: string): { value: SupportCardOutput | null; error: string | null } {
+export function parseStrictJson<T = unknown>(raw: string): { value: T | null; error: string | null } {
   const trimmed = raw.trim()
   if (!trimmed) return { value: null, error: 'Response is empty.' }
   if (trimmed.startsWith('```') || trimmed.endsWith('```')) {
@@ -8,7 +6,7 @@ export function parseStrictJson(raw: string): { value: SupportCardOutput | null;
   }
 
   try {
-    const value = JSON.parse(trimmed) as SupportCardOutput
+    const value = JSON.parse(trimmed) as T
     if (typeof value !== 'object' || value === null || Array.isArray(value)) {
       return { value: null, error: 'Response must be a JSON object.' }
     }

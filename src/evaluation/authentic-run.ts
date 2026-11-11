@@ -39,6 +39,7 @@ async function evaluateModel(role: 'reference' | 'candidate', apiKey: string): P
       caseId: testCase.id,
       role,
       rawOutput: result.content,
+      requestId: result.requestId,
       validation: validateOutput(result.content, SUPPORT_CARD_CONTRACT, testCase),
       evidence: 'otari',
     })

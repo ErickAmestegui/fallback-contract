@@ -21,6 +21,7 @@ function model(role: 'reference' | 'candidate', outputs: readonly (string | null
       caseId: testCase.id,
       role,
       rawOutput: outputs[index],
+      requestId: null,
       validation: validateOutput(outputs[index], SUPPORT_CARD_CONTRACT, testCase),
       evidence: 'local-fixture',
     })),

@@ -1,0 +1,39 @@
+{
+  "evidenceFile": "evidence/authentic/v2-routing-2026-11-11T13-18-59-492Z.json",
+  "checkedAt": "2026-11-11T13:19:58.462Z",
+  "checks": [
+    {
+      "caseId": "lost-card-001",
+      "requestId": "98db0040-8aa2-4f00-abf8-40f9db756d4d",
+      "fallback": false,
+      "attemptCount": 1,
+      "rowCount": 1,
+      "requestStatus": "success",
+      "costUsd": 0.000017,
+      "status": "consistent",
+      "detail": "Headers and usage rows agree on 1 attempts."
+    },
+    {
+      "caseId": "pin-001",
+      "requestId": "14b12404-9dfe-4df0-b29d-87af6a993ddd",
+      "fallback": false,
+      "attemptCount": 1,
+      "rowCount": 1,
+      "requestStatus": "success",
+      "costUsd": 0.000021,
+      "status": "consistent",
+      "detail": "Headers and usage rows agree on 1 attempts."
+    },
+    {
+      "caseId": "arrival-001",
+      "requestId": "92944bd4-42a6-4dab-bf94-6fac7b839272",
+      "fallback": false,
+      "attemptCount": 1,
+      "rowCount": 1,
+      "requestStatus": "success",
+      "costUsd": 0.000025,
+      "status": "consistent",
+      "detail": "Headers and usage rows agree on 1 attempts."
+    }
+  ]
+}

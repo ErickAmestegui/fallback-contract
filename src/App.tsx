@@ -5,6 +5,7 @@ import { decideComparison } from './evaluation/decision'
 import { LOCAL_FIXTURES } from './evaluation/fixtures'
 import type { AuthenticComparisonResponse } from './evaluation/authentic'
 import type { ComparisonResult } from './evaluation/types'
+import { RoutingRunPanel } from './RoutingRunPanel'
 import './App.css'
 
 const navigation = [
@@ -13,6 +14,7 @@ const navigation = [
   { label: 'Contracts', target: 'contracts', icon: '</>' },
   { label: 'Executions', target: 'executions', icon: '▷' },
   { label: 'Evidence', target: 'evidence', icon: '▤' },
+  { label: 'Routing run', target: 'routing-run', icon: '⤳' },
 ]
 
 function App() {
@@ -146,6 +148,7 @@ function App() {
         </section>
 
         {recordedRun && <ComparisonDetails result={recordedRun.comparison} authenticEvidence={recordedRun} />}
+        <RoutingRunPanel />
         {comparison && <ComparisonDetails result={comparison} authenticEvidence={null} />}
 
         <section className="lower-grid" id="contracts">
@@ -157,8 +160,8 @@ function App() {
             <div className="contract-meta"><div><span>TEST CASES</span><strong>{SUPPORT_CARD_CONTRACT.cases.length} configured</strong></div><div><span>VALIDATOR</span><strong><ShieldCheck size={15} /> Ajv + rules</strong></div><div><span>MODE</span><strong>Evidence only</strong></div></div>
           </div>
           <div className="panel evidence-panel" id="evidence">
-            <div className="panel-heading compact"><div><span className="panel-number">04</span><h2>Evidence</h2></div><span className="status-tag neutral">EMPTY</span></div>
-            <div className="evidence-empty"><CircleAlert size={20} /><p>Real request IDs, costs and outputs will appear here after an authenticated evaluation.</p><small>Nothing is simulated in this workspace.</small></div>
+            <div className="panel-heading compact"><div><span className="panel-number">04</span><h2>Live evidence</h2></div><span className="status-tag neutral">DISABLED</span></div>
+            <div className="evidence-empty"><CircleAlert size={20} /><p>No live request is made in this public demo.</p><small>Authentic recorded evidence is shown above: the historical v1 run and the v2 Otari routing run. Only “Run local test” uses simulated fixtures.</small></div>
             <div className="security-note"><ShieldCheck size={15} /><span>Otari key stays server-side</span></div>
           </div>
         </section>
@@ -177,10 +180,16 @@ function ComparisonDetails({ result, authenticEvidence }: { result: ComparisonRe
     referenceCase,
     candidateCase: result.candidate.cases.find((candidateCase) => candidateCase.caseId === referenceCase.caseId),
   }))
+  const reasons = result.reasons.map((reason, index) => {
+    const hasFormatFailure = rows.some(({ candidateCase }) => candidateCase?.validation.checks.some((check) => check.ruleId === 'json-valid' && check.status === 'failed'))
+    return index === 0 && hasFormatFailure && reason.includes('confirmed functional contract failure')
+      ? 'Candidate rejected: a mandatory JSON-format check failed.'
+      : reason
+  })
 
   return <section className="comparison-details panel" id={authenticEvidence ? 'recorded-evidence' : 'local-comparison'} aria-live="polite">
     <div className="panel-heading compact">
-      <div><span className="panel-number">{authenticEvidence ? '05' : '06'}</span><div><h2>{authenticEvidence ? 'Recorded live run' : 'Local comparison results'}</h2><p>{authenticEvidence ? 'RECORDED LIVE RUN · captured previously from authentic Otari requests.' : 'LOCAL TEST / DEMO fixture · no Otari request was made.'}</p></div></div>
+      <div><span className="panel-number">{authenticEvidence ? '05' : '06'}</span><div><h2>{authenticEvidence ? 'Recorded live run · v1 contract (historical)' : 'Local comparison results'}</h2><p>{authenticEvidence ? 'RECORDED LIVE RUN · historical v1 experiment captured from authentic Otari requests.' : 'LOCAL TEST / DEMO fixture · simulated, no Otari request was made.'}</p></div></div>
       <span className="status-tag neutral">{result.evidence}</span>
     </div>
     <div className="comparison-table" role="table" aria-label="Local comparison results">
@@ -201,7 +210,7 @@ function ComparisonDetails({ result, authenticEvidence }: { result: ComparisonRe
       </details>)}
     </div>
     {authenticEvidence && <div className="authentic-evidence"><strong>Authentic request evidence</strong><p>Total reported cost: {authenticEvidence.totalCostUsd === null ? 'not reported' : `$${authenticEvidence.totalCostUsd.toFixed(6)}`}</p>{authenticEvidence.evidence.flatMap((model) => model.cases).map(({ caseId, result: modelResult }) => <div key={`${modelResult.requestedModel}-${caseId}`}><span>{caseId} · {modelResult.requestedModel}</span><small>HTTP {modelResult.error?.status ?? 200} · effective {modelResult.effectiveModel ?? 'not reported'} · request ID {modelResult.requestId ?? 'not reported'} · tokens {modelResult.usage.total_tokens ?? 'not reported'}</small></div>)}</div>}
-    <div className="comparison-reasons"><strong>Decision reasons</strong>{result.reasons.map((reason) => <p key={reason}>{reason}</p>)}</div>
+    <div className="comparison-reasons"><strong>Decision reasons · contract checks</strong>{reasons.map((reason) => <p key={reason}>{reason}</p>)}</div>
   </section>
 }
 

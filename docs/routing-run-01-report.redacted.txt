@@ -1,0 +1,88 @@
+OTARI LAB - AUTHENTIC ROUTING RUN 01 (fc-failover)
+PUBLIC REDACTED COPY: the key's balances, monthly limit and exposure
+setting are removed. Everything else matches the original report.
+
+Status: COMPLETED. Policy routing to the primary DEMONSTRATED.
+        Fallback NOT demonstrated (no candidate failed; Otari served the
+        primary on every policy request).
+Date: 2026-11-11 (run started 2026-11-11T13:18:59.492Z)
+Code: commit 4a8ffa2, branch recovery-contract-invariants-2026-11-10
+Authorization: owner, single run, max 6 completions, target US$0.01.
+
+Configuration (private Node backend bound to 127.0.0.1:8788):
+  OTARI_ROUTING_POLICY=fc-failover
+  OTARI_ROUTING_PRIMARY=deepinfra:openai/gpt-oss-20b
+  OTARI_ROUTING_ON_FAILURE=bedrock:qwen.qwen3-32b-v1:0
+  OTARI_RUN_MAX_COST_USD=0.01, OTARI_MAX_EXPOSURE_USD=[redacted]
+  Reference: openai/gpt-oss-20b direct, response_format=json_object,
+  reasoning_effort=low, max_tokens=512. Policy: no response_format,
+  max_tokens=256, same prompts.
+
+Procedure:
+  1. GET /api/v1/key/budget before starting: budgets_enforced=true, scope
+     api_token, limit [redacted], remaining [redacted].
+  2. Offline routing suite: 47/47 passed.
+  3. One POST /api/compare-v2-routing (HTTP 200, 9.3 s). No retries.
+  4. Backend stopped. Usage rows read with GET /api/v1/usage/requests/{id}
+     for the three policy requests; settled budget read again.
+
+Results (Otari response headers and body, unaltered in the evidence file):
+
+  role       case           Otari-Request-ID                      provider   served model         att fb    cost USD
+  reference  lost-card-001  4edf75e3-d0c5-4927-b030-d5ada576f1e3  deepinfra  openai/gpt-oss-20b    1  false 0.000012
+  reference  pin-001        25e669cb-32aa-4319-ac5a-31b4bedc3980  deepinfra  openai/gpt-oss-20b    1  false 0.000011
+  reference  arrival-001    e1464260-d6f6-45c0-8fd7-8ba6ee7ce76d  deepinfra  openai/gpt-oss-20b    1  false 0.000012
+  policy     lost-card-001  98db0040-8aa2-4f00-abf8-40f9db756d4d  deepinfra  openai/gpt-oss-20b    1  false 0.000017
+  policy     pin-001        14b12404-9dfe-4df0-b29d-87af6a993ddd  deepinfra  openai/gpt-oss-20b    1  false 0.000021
+  policy     arrival-001    92944bd4-42a6-4dab-bf94-6fac7b839272  deepinfra  openai/gpt-oss-20b    1  false 0.000025
+
+  Body "model" on policy responses: fc-failover (the alias), as documented.
+  All six: HTTP 200, finish_reason=stop, valid v2 JSON.
+  Usage rows (policy requests): row_count=1, status=success, costs equal
+  to the inline usage.cost_usd; headers and usage rows consistent.
+
+Decision: APPROVE (v2 contract, every rule passed on every case).
+  Caveat: the direct reference was also served by DeepInfra
+  openai/gpt-oss-20b, so this APPROVE compares the same served model
+  reached directly and through the policy. It is not a cross-model result.
+  Policy pin-001 urgency was "low" versus the reference's "medium";
+  allowed by the v2 contract (minimum urgency "any").
+
+Cost:
+  Reported total US$0.000098 (reference 0.000035, policy 0.000063).
+  Budget remaining [redacted] -> [redacted]: delta US$0.000098, equal to the
+  reported total. Within the US$0.01 target; 6 of 6 completions used.
+
+Hypotheses checked:
+  - Otari-Provider/Otari-Model join to the policy target string:
+    CONFIRMED for the primary (deepinfra + openai/gpt-oss-20b). Not
+    observed for the Bedrock backup.
+  - usage row_count equals Otari-Attempt-Count: CONFIRMED for 1-attempt
+    requests only.
+  - Removing response_format from policy requests: the primary still
+    returned pure JSON. The Bedrock backup path remains unexercised.
+
+Not demonstrated:
+  - Failover to bedrock:qwen.qwen3-32b-v1:0 (Otari-Fallback=true).
+  - Absorbed usage rows for a failed attempt.
+  No failure was induced and no extra request was made, per instruction.
+
+Published evidence (SHA-256):
+  evidence/redacted/v2-routing-2026-11-11T13-18-59-492Z.redacted.json
+    ADBB84DC75B31D5AFDA5F741D1A424D16A1EA7AE2C73BF7D60F0A4FD9259D1C4
+    Redacted copy, NOT byte-identical to the original. Removed:
+    config.maxExposureUsd, budgetBefore/budgetAfter remainingUsd and
+    limits. publicRedaction.budgetDeltaUsd keeps the delta (0.000098).
+    Every call, request ID, header value, output and cost is unchanged.
+  evidence/authentic/v2-routing-2026-11-11T13-18-59-492Z.usage.json
+    44270A70C5E7183FA39CD9D8940943F8F6A3C18BC3128D240D4DBA66155FDAE2
+    Unmodified original (contains no account data).
+
+Kept private, not published (SHA-256 of the originals):
+  v2-routing-2026-11-11T13-18-59-492Z.json
+    930CA5CF1F0493D2DD89E58D198EAB4C59D28333694BDD0EBBD322ECC16A5F0C
+  v2-routing-2026-11-11T13-18-59-492Z.budget-postflight.json
+    9361DA21DF627A21D0F205973B1887BF9EDBF007A2C58DDBC841156C61398F45
+  Checked: no API key and no local filesystem path in any file.
+  Dashboard screenshots of the policy and the Overview Requests tab
+  were not taken (no dashboard session available to this agent).

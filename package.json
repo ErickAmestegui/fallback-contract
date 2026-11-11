@@ -9,6 +9,8 @@
     "lint": "oxlint",
     "preview": "npm run build && vite preview",
     "node-backend": "tsx scripts/node-backend.ts",
+    "verify-routing-usage": "tsx scripts/verify-routing-usage.ts",
+    "redact-routing-evidence": "tsx scripts/redact-routing-evidence.ts",
     "deploy": "npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "test": "vitest run",

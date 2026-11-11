@@ -13,6 +13,7 @@ interface OtariChatResponse {
     message?: { content?: string | null }
   }>
   usage?: Partial<OtariUsage>
+  code?: string
   error?: { code?: string; message?: string }
 }
 
@@ -23,6 +24,32 @@ interface OtariModelsResponse {
 export interface OtariModelsResult {
   status: 'ok' | 'inconclusive'
   models: string[]
+  error: { status: number | null; code: string | null; message: string } | null
+}
+
+export interface OtariBudgetLimit {
+  scope: string | null
+  provider: string | null
+  limitUsd: number | null
+  usedUsd: number | null
+  remainingUsd: number | null
+  resetsAt: string | null
+}
+
+export interface OtariKeyBudgetResult {
+  status: 'ok' | 'inconclusive'
+  budgetsEnforced: boolean
+  remainingUsd: number | null
+  limits: OtariBudgetLimit[]
+  error: { status: number | null; code: string | null; message: string } | null
+}
+
+export interface OtariRequestUsageResult {
+  status: 'ok' | 'inconclusive'
+  requestId: string
+  requestStatus: string | null
+  costUsd: number | null
+  rowCount: number | null
   error: { status: number | null; code: string | null; message: string } | null
 }
 
@@ -38,6 +65,45 @@ function nullableNumber(value: unknown): number | null {
   if (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value))) return Number(value)
   return null
 }
+
+function nullableInteger(value: string | null): number | null {
+  if (value === null || !/^\d+$/.test(value)) return null
+  return Number(value)
+}
+
+function nullableBoolean(value: string | null): boolean | null {
+  if (value === 'true') return true
+  if (value === 'false') return false
+  return null
+}
+
+function nullableString(value: unknown): string | null {
+  return typeof value === 'string' && value !== '' ? value : null
+}
+
+function transportErrorCode(error: unknown): string {
+  return error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'transport_error'
+}
+
+function routingMetadata(headers: Headers) {
+  return {
+    provider: headers.get('Otari-Provider'),
+    servedModel: headers.get('Otari-Model'),
+    attemptCount: nullableInteger(headers.get('Otari-Attempt-Count')),
+    fallback: nullableBoolean(headers.get('Otari-Fallback')),
+    responseDurationMs: nullableInteger(headers.get('Otari-Response-Duration-Ms')),
+    serverTiming: headers.get('Server-Timing'),
+  }
+}
+
+const emptyRoutingMetadata = () => ({
+  provider: null,
+  servedModel: null,
+  attemptCount: null,
+  fallback: null,
+  responseDurationMs: null,
+  serverTiming: null,
+})
 
 export async function callOtari(
   env: OtariEnv,
@@ -93,14 +159,19 @@ export async function callOtari(
         requestedModel: request.model,
         effectiveModel: payload.model ?? null,
         requestId,
+        ...routingMetadata(response.headers),
         finishReason: null,
         content: null,
         usage: emptyUsage(),
         status: 'inconclusive',
         error: {
           status: response.status,
-          code: payload.error?.code ?? response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
+          code: payload.error?.code ?? nullableString(payload.code) ?? response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
           message: 'Otari no pudo completar la solicitud.',
+          budgetScope: response.headers.get('Otari-Budget-Scope'),
+          retryAfterSeconds: nullableInteger(response.headers.get('Retry-After')),
+          failedProvider: response.headers.get('Otari-Error-Provider'),
+          failureTag: response.headers.get('Otari-Error-Tag'),
         },
       }
     }
@@ -110,6 +181,7 @@ export async function callOtari(
       requestedModel: request.model,
       effectiveModel: payload.model ?? null,
       requestId,
+      ...routingMetadata(response.headers),
       finishReason: payload.choices?.[0]?.finish_reason ?? null,
       content: payload.choices?.[0]?.message?.content ?? null,
       usage: {
@@ -126,13 +198,14 @@ export async function callOtari(
       requestedModel: request.model,
       effectiveModel: null,
       requestId: null,
+      ...emptyRoutingMetadata(),
       finishReason: null,
       content: null,
       usage: emptyUsage(),
       status: 'inconclusive',
       error: {
         status: null,
-        code: error instanceof DOMException && error.name === 'AbortError' ? 'timeout' : 'transport_error',
+        code: transportErrorCode(error),
         message: 'No se pudo completar la conexión con Otari.',
       },
     }
@@ -193,6 +266,132 @@ export async function listOtariModels(
         message: 'No se pudo consultar los modelos de Otari.',
       },
     }
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+interface OtariKeyBudgetResponse {
+  budgets_enforced?: unknown
+  remaining_usd?: unknown
+  limits?: Array<{
+    scope?: unknown
+    provider?: unknown
+    limit_usd?: unknown
+    used_usd?: unknown
+    remaining_usd?: unknown
+    resets_at?: unknown
+  }>
+}
+
+export async function getOtariKeyBudget(
+  env: OtariEnv,
+  fetcher: typeof fetch = fetch,
+  timeoutMs = 10_000,
+): Promise<OtariKeyBudgetResult> {
+  const unavailable = (error: NonNullable<OtariKeyBudgetResult['error']>): OtariKeyBudgetResult => ({
+    status: 'inconclusive',
+    budgetsEnforced: false,
+    remainingUsd: null,
+    limits: [],
+    error,
+  })
+  if (!env.OTARI_API_KEY) {
+    return unavailable({ status: null, code: 'missing_secret', message: 'Otari no está configurado en el backend.' })
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetcher(`${OTARI_BASE_URL}/key/budget`, {
+      method: 'GET',
+      headers: { 'Otari-Key': env.OTARI_API_KEY },
+      signal: controller.signal,
+    })
+    if (!response.ok) {
+      return unavailable({
+        status: response.status,
+        code: response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
+        message: 'Otari no pudo consultar el presupuesto de la API key.',
+      })
+    }
+    let payload: OtariKeyBudgetResponse
+    try {
+      payload = (await response.json()) as OtariKeyBudgetResponse
+    } catch {
+      return unavailable({ status: response.status, code: 'invalid_budget_payload', message: 'Respuesta de presupuesto ilegible.' })
+    }
+    return {
+      status: 'ok',
+      budgetsEnforced: payload.budgets_enforced === true,
+      remainingUsd: nullableNumber(payload.remaining_usd),
+      limits: (Array.isArray(payload.limits) ? payload.limits : []).map((limit) => ({
+        scope: nullableString(limit.scope),
+        provider: nullableString(limit.provider),
+        limitUsd: nullableNumber(limit.limit_usd),
+        usedUsd: nullableNumber(limit.used_usd),
+        remainingUsd: nullableNumber(limit.remaining_usd),
+        resetsAt: nullableString(limit.resets_at),
+      })),
+      error: null,
+    }
+  } catch (error) {
+    return unavailable({ status: null, code: transportErrorCode(error), message: 'No se pudo consultar el presupuesto de Otari.' })
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+export async function getOtariRequestUsage(
+  env: OtariEnv,
+  requestId: string,
+  fetcher: typeof fetch = fetch,
+  timeoutMs = 10_000,
+): Promise<OtariRequestUsageResult> {
+  const unavailable = (error: NonNullable<OtariRequestUsageResult['error']>): OtariRequestUsageResult => ({
+    status: 'inconclusive',
+    requestId,
+    requestStatus: null,
+    costUsd: null,
+    rowCount: null,
+    error,
+  })
+  if (!env.OTARI_API_KEY) {
+    return unavailable({ status: null, code: 'missing_secret', message: 'Otari no está configurado en el backend.' })
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetcher(`${OTARI_BASE_URL}/usage/requests/${encodeURIComponent(requestId)}`, {
+      method: 'GET',
+      headers: { 'Otari-Key': env.OTARI_API_KEY },
+      signal: controller.signal,
+    })
+    if (!response.ok) {
+      return unavailable({
+        status: response.status,
+        code: response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
+        message: response.status === 404
+          ? 'La solicitud aún no está liquidada o no pertenece a esta API key.'
+          : 'Otari no pudo consultar el uso de la solicitud.',
+      })
+    }
+    const payload = (await response.json()) as { request_id?: unknown; status?: unknown; cost_usd?: unknown; row_count?: unknown }
+    if (payload.request_id !== requestId) {
+      return unavailable({ status: response.status, code: 'request_id_mismatch', message: 'El uso devuelto no corresponde a la solicitud.' })
+    }
+    const rowCount = nullableNumber(payload.row_count)
+    return {
+      status: 'ok',
+      requestId,
+      requestStatus: nullableString(payload.status),
+      costUsd: nullableNumber(payload.cost_usd),
+      rowCount: rowCount !== null && Number.isInteger(rowCount) ? rowCount : null,
+      error: null,
+    }
+  } catch (error) {
+    return unavailable({ status: null, code: transportErrorCode(error), message: 'No se pudo consultar el uso de Otari.' })
   } finally {
     clearTimeout(timeout)
   }

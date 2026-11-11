@@ -1,0 +1,812 @@
+{
+  "publicRedaction": {
+    "copy": "redacted",
+    "sourceFile": "evidence/authentic/v2-routing-2026-11-11T13-18-59-492Z.json",
+    "sourceSha256": "930CA5CF1F0493D2DD89E58D198EAB4C59D28333694BDD0EBBD322ECC16A5F0C",
+    "removedFields": [
+      "config.maxExposureUsd",
+      "budgetBefore.remainingUsd",
+      "budgetBefore.limits",
+      "budgetAfter.remainingUsd",
+      "budgetAfter.limits"
+    ],
+    "budgetDeltaUsd": 0.000098
+  },
+  "evidence": "otari",
+  "startedAt": "2026-11-11T13:18:59.492Z",
+  "config": {
+    "referenceModel": "openai/gpt-oss-20b",
+    "policy": {
+      "kind": "otari-failover-policy",
+      "policy": "fc-failover",
+      "primary": "deepinfra:openai/gpt-oss-20b",
+      "onFailure": [
+        "bedrock:qwen.qwen3-32b-v1:0"
+      ]
+    },
+    "maxRunCostUsd": 0.01
+  },
+  "preflight": {
+    "passed": true,
+    "reasons": []
+  },
+  "budgetBefore": {
+    "status": "ok",
+    "budgetsEnforced": true,
+    "error": null
+  },
+  "budgetAfter": {
+    "status": "ok",
+    "budgetsEnforced": true,
+    "error": null
+  },
+  "requestsPlanned": 6,
+  "requestsSent": 6,
+  "stoppedReason": null,
+  "calls": [
+    {
+      "role": "reference",
+      "caseId": "lost-card-001",
+      "result": {
+        "requestedModel": "openai/gpt-oss-20b",
+        "effectiveModel": "openai/gpt-oss-20b",
+        "requestId": "4edf75e3-d0c5-4927-b030-d5ada576f1e3",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 1301,
+        "serverTiming": "otari;dur=89.5;desc=\"Otari before the provider\", upstream;dur=1211.7;desc=\"Provider until its answer or first chunk\", total;dur=1301.2;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"lost_or_stolen_card\",\"urgency\":\"high\",\"actionId\":\"freeze_card\"}",
+        "usage": {
+          "prompt_tokens": 164,
+          "completion_tokens": 51,
+          "total_tokens": 215,
+          "cost_usd": 0.000012
+        },
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "role": "reference",
+      "caseId": "pin-001",
+      "result": {
+        "requestedModel": "openai/gpt-oss-20b",
+        "effectiveModel": "openai/gpt-oss-20b",
+        "requestId": "25e669cb-32aa-4319-ac5a-31b4bedc3980",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 572,
+        "serverTiming": "otari;dur=65.6;desc=\"Otari before the provider\", upstream;dur=506.0;desc=\"Provider until its answer or first chunk\", total;dur=571.6;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"change_pin\",\"urgency\":\"medium\",\"actionId\":\"change_pin\"}",
+        "usage": {
+          "prompt_tokens": 163,
+          "completion_tokens": 43,
+          "total_tokens": 206,
+          "cost_usd": 0.000011
+        },
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "role": "reference",
+      "caseId": "arrival-001",
+      "result": {
+        "requestedModel": "openai/gpt-oss-20b",
+        "effectiveModel": "openai/gpt-oss-20b",
+        "requestId": "e1464260-d6f6-45c0-8fd7-8ba6ee7ce76d",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 782,
+        "serverTiming": "otari;dur=52.6;desc=\"Otari before the provider\", upstream;dur=729.2;desc=\"Provider until its answer or first chunk\", total;dur=781.8;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"card_arrival\",\"urgency\":\"medium\",\"actionId\":\"track_card_arrival\"}",
+        "usage": {
+          "prompt_tokens": 161,
+          "completion_tokens": 52,
+          "total_tokens": 213,
+          "cost_usd": 0.000012
+        },
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "role": "candidate",
+      "caseId": "lost-card-001",
+      "result": {
+        "requestedModel": "fc-failover",
+        "effectiveModel": "fc-failover",
+        "requestId": "98db0040-8aa2-4f00-abf8-40f9db756d4d",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 985,
+        "serverTiming": "otari;dur=44.8;desc=\"Otari before the provider\", upstream;dur=940.2;desc=\"Provider until its answer or first chunk\", total;dur=985.0;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"lost_or_stolen_card\",\"urgency\":\"high\",\"actionId\":\"freeze_card\"}",
+        "usage": {
+          "prompt_tokens": 164,
+          "completion_tokens": 87,
+          "total_tokens": 251,
+          "cost_usd": 0.000017
+        },
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "role": "candidate",
+      "caseId": "pin-001",
+      "result": {
+        "requestedModel": "fc-failover",
+        "effectiveModel": "fc-failover",
+        "requestId": "14b12404-9dfe-4df0-b29d-87af6a993ddd",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 1111,
+        "serverTiming": "otari;dur=67.0;desc=\"Otari before the provider\", upstream;dur=1043.6;desc=\"Provider until its answer or first chunk\", total;dur=1110.6;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"change_pin\",\"urgency\":\"low\",\"actionId\":\"change_pin\"}",
+        "usage": {
+          "prompt_tokens": 163,
+          "completion_tokens": 114,
+          "total_tokens": 277,
+          "cost_usd": 0.000021
+        },
+        "status": "ok",
+        "error": null
+      }
+    },
+    {
+      "role": "candidate",
+      "caseId": "arrival-001",
+      "result": {
+        "requestedModel": "fc-failover",
+        "effectiveModel": "fc-failover",
+        "requestId": "92944bd4-42a6-4dab-bf94-6fac7b839272",
+        "provider": "deepinfra",
+        "servedModel": "openai/gpt-oss-20b",
+        "attemptCount": 1,
+        "fallback": false,
+        "responseDurationMs": 1747,
+        "serverTiming": "otari;dur=69.3;desc=\"Otari before the provider\", upstream;dur=1677.8;desc=\"Provider until its answer or first chunk\", total;dur=1747.2;desc=\"Otari and the provider\"",
+        "finishReason": "stop",
+        "content": "{\"category\":\"card_arrival\",\"urgency\":\"medium\",\"actionId\":\"track_card_arrival\"}",
+        "usage": {
+          "prompt_tokens": 161,
+          "completion_tokens": 143,
+          "total_tokens": 304,
+          "cost_usd": 0.000025
+        },
+        "status": "ok",
+        "error": null
+      }
+    }
+  ],
+  "totalReportedCostUsd": 0.000098,
+  "comparison": {
+    "contract": {
+      "id": "support-card-classification-v2",
+      "version": "2.0.0",
+      "schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "category",
+          "urgency",
+          "actionId"
+        ],
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "lost_or_stolen_card",
+              "change_pin",
+              "card_arrival"
+            ]
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "actionId": {
+            "type": "string",
+            "enum": [
+              "freeze_card",
+              "change_pin",
+              "track_card_arrival",
+              "share_pin",
+              "keep_using_stolen_card",
+              "do_not_freeze_card"
+            ]
+          }
+        }
+      },
+      "allowedCategories": [
+        "lost_or_stolen_card",
+        "change_pin",
+        "card_arrival"
+      ],
+      "cases": [
+        {
+          "id": "lost-card-001",
+          "message": "I lost my debit card and need to freeze it.",
+          "referenceCategory": "lost_or_stolen_card",
+          "expectedActionId": "freeze_card",
+          "minimumUrgency": "high"
+        },
+        {
+          "id": "pin-001",
+          "message": "I need to change the PIN on my card.",
+          "referenceCategory": "change_pin",
+          "expectedActionId": "change_pin",
+          "minimumUrgency": "any"
+        },
+        {
+          "id": "arrival-001",
+          "message": "My replacement card has not arrived yet.",
+          "referenceCategory": "card_arrival",
+          "expectedActionId": "track_card_arrival",
+          "minimumUrgency": "any"
+        }
+      ],
+      "rules": [
+        {
+          "id": "json-valid",
+          "label": "Valid JSON according to the v2 contract"
+        },
+        {
+          "id": "category-allowed",
+          "label": "Category is in the allowed set"
+        },
+        {
+          "id": "category-matches-reference",
+          "label": "Category matches the reference"
+        },
+        {
+          "id": "required-fields",
+          "label": "Required fields have the expected types"
+        },
+        {
+          "id": "action-allowed",
+          "label": "Structured action is allowed for the category"
+        },
+        {
+          "id": "action-not-prohibited",
+          "label": "Structured action is not explicitly prohibited"
+        },
+        {
+          "id": "urgency-compatible",
+          "label": "Urgency satisfies the category policy"
+        },
+        {
+          "id": "no-unknown-fields",
+          "label": "No unknown fields are present"
+        }
+      ]
+    },
+    "cases": [
+      {
+        "id": "lost-card-001",
+        "message": "I lost my debit card and need to freeze it.",
+        "referenceCategory": "lost_or_stolen_card",
+        "expectedActionId": "freeze_card",
+        "minimumUrgency": "high"
+      },
+      {
+        "id": "pin-001",
+        "message": "I need to change the PIN on my card.",
+        "referenceCategory": "change_pin",
+        "expectedActionId": "change_pin",
+        "minimumUrgency": "any"
+      },
+      {
+        "id": "arrival-001",
+        "message": "My replacement card has not arrived yet.",
+        "referenceCategory": "card_arrival",
+        "expectedActionId": "track_card_arrival",
+        "minimumUrgency": "any"
+      }
+    ],
+    "reference": {
+      "role": "reference",
+      "requestedModel": "openai/gpt-oss-20b",
+      "effectiveModel": "openai/gpt-oss-20b",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"lost_or_stolen_card\",\"urgency\":\"high\",\"actionId\":\"freeze_card\"}",
+          "requestId": "4edf75e3-d0c5-4927-b030-d5ada576f1e3",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 1301,
+          "serverTiming": "otari;dur=89.5;desc=\"Otari before the provider\", upstream;dur=1211.7;desc=\"Provider until its answer or first chunk\", total;dur=1301.2;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "lost_or_stolen_card",
+              "urgency": "high",
+              "actionId": "freeze_card"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action freeze_card is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "pin-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"change_pin\",\"urgency\":\"medium\",\"actionId\":\"change_pin\"}",
+          "requestId": "25e669cb-32aa-4319-ac5a-31b4bedc3980",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 572,
+          "serverTiming": "otari;dur=65.6;desc=\"Otari before the provider\", upstream;dur=506.0;desc=\"Provider until its answer or first chunk\", total;dur=571.6;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "change_pin",
+              "urgency": "medium",
+              "actionId": "change_pin"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action change_pin is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "arrival-001",
+          "role": "reference",
+          "rawOutput": "{\"category\":\"card_arrival\",\"urgency\":\"medium\",\"actionId\":\"track_card_arrival\"}",
+          "requestId": "e1464260-d6f6-45c0-8fd7-8ba6ee7ce76d",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 782,
+          "serverTiming": "otari;dur=52.6;desc=\"Otari before the provider\", upstream;dur=729.2;desc=\"Provider until its answer or first chunk\", total;dur=781.8;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "card_arrival",
+              "urgency": "medium",
+              "actionId": "track_card_arrival"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action track_card_arrival is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        }
+      ],
+      "technicalError": null,
+      "modelIdentityMismatch": false,
+      "modelIdentityReasons": []
+    },
+    "candidate": {
+      "role": "candidate",
+      "requestedModel": "fc-failover",
+      "effectiveModel": "deepinfra:openai/gpt-oss-20b",
+      "cases": [
+        {
+          "caseId": "lost-card-001",
+          "role": "candidate",
+          "rawOutput": "{\"category\":\"lost_or_stolen_card\",\"urgency\":\"high\",\"actionId\":\"freeze_card\"}",
+          "requestId": "98db0040-8aa2-4f00-abf8-40f9db756d4d",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 985,
+          "serverTiming": "otari;dur=44.8;desc=\"Otari before the provider\", upstream;dur=940.2;desc=\"Provider until its answer or first chunk\", total;dur=985.0;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "lost_or_stolen_card",
+              "urgency": "high",
+              "actionId": "freeze_card"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action freeze_card is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "pin-001",
+          "role": "candidate",
+          "rawOutput": "{\"category\":\"change_pin\",\"urgency\":\"low\",\"actionId\":\"change_pin\"}",
+          "requestId": "14b12404-9dfe-4df0-b29d-87af6a993ddd",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 1111,
+          "serverTiming": "otari;dur=67.0;desc=\"Otari before the provider\", upstream;dur=1043.6;desc=\"Provider until its answer or first chunk\", total;dur=1110.6;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "change_pin",
+              "urgency": "low",
+              "actionId": "change_pin"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action change_pin is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        },
+        {
+          "caseId": "arrival-001",
+          "role": "candidate",
+          "rawOutput": "{\"category\":\"card_arrival\",\"urgency\":\"medium\",\"actionId\":\"track_card_arrival\"}",
+          "requestId": "92944bd4-42a6-4dab-bf94-6fac7b839272",
+          "provider": "deepinfra",
+          "servedModel": "openai/gpt-oss-20b",
+          "attemptCount": 1,
+          "fallback": false,
+          "responseDurationMs": 1747,
+          "serverTiming": "otari;dur=69.3;desc=\"Otari before the provider\", upstream;dur=1677.8;desc=\"Provider until its answer or first chunk\", total;dur=1747.2;desc=\"Otari and the provider\"",
+          "responseStatus": "ok",
+          "errorCode": null,
+          "validation": {
+            "status": "passed",
+            "parsed": {
+              "category": "card_arrival",
+              "urgency": "medium",
+              "actionId": "track_card_arrival"
+            },
+            "checks": [
+              {
+                "ruleId": "json-valid",
+                "label": "Valid JSON according to the v2 contract",
+                "status": "passed",
+                "detail": "JSON matches the v2 schema."
+              },
+              {
+                "ruleId": "category-allowed",
+                "label": "Category is in the allowed set",
+                "status": "passed",
+                "detail": "Category is allowed."
+              },
+              {
+                "ruleId": "category-matches-reference",
+                "label": "Category matches the reference",
+                "status": "passed",
+                "detail": "Category matches the expected case label."
+              },
+              {
+                "ruleId": "required-fields",
+                "label": "Required fields have the expected types",
+                "status": "passed",
+                "detail": "Required fields are present and typed."
+              },
+              {
+                "ruleId": "action-allowed",
+                "label": "Structured action is allowed for the category",
+                "status": "passed",
+                "detail": "Action track_card_arrival is allowed for this case."
+              },
+              {
+                "ruleId": "action-not-prohibited",
+                "label": "Structured action is not explicitly prohibited",
+                "status": "passed",
+                "detail": "Action is not prohibited."
+              },
+              {
+                "ruleId": "urgency-compatible",
+                "label": "Urgency satisfies the category policy",
+                "status": "passed",
+                "detail": "Urgency satisfies the case policy."
+              },
+              {
+                "ruleId": "no-unknown-fields",
+                "label": "No unknown fields are present",
+                "status": "passed",
+                "detail": "No unknown fields found."
+              }
+            ],
+            "error": null
+          },
+          "evidence": "otari"
+        }
+      ],
+      "technicalError": null,
+      "modelIdentityMismatch": false,
+      "modelIdentityReasons": [],
+      "routing": {
+        "policy": "fc-failover",
+        "primary": "deepinfra:openai/gpt-oss-20b",
+        "onFailure": [
+          "bedrock:qwen.qwen3-32b-v1:0"
+        ],
+        "servedTargets": [
+          "deepinfra:openai/gpt-oss-20b"
+        ],
+        "fallbackCaseIds": [],
+        "maxAttemptCount": 1
+      }
+    },
+    "contractId": "support-card-classification-v2",
+    "contractVersion": "2.0.0",
+    "decision": "APPROVE",
+    "reasons": [
+      "Candidate passed every mandatory rule on every shared test case."
+    ],
+    "evidence": "otari"
+  }
+}

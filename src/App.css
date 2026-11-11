@@ -140,6 +140,16 @@ h1 em { color: var(--accent); font-style: normal; }
 .authentic-evidence p { color: var(--muted); margin: 6px 0 12px; }
 .authentic-evidence > div { border-top: 1px solid var(--line); display: grid; gap: 3px; padding: 8px 0; }
 .authentic-evidence small { color: var(--muted); overflow-wrap: anywhere; }
+.authentic-evidence code { overflow-wrap: anywhere; }
+.routing-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1px; margin: 0; background: var(--line); border-bottom: 1px solid var(--line); }
+.routing-facts > div { background: var(--surface); padding: 12px 16px; }
+.routing-facts dt { color: var(--muted); font: 9px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+.routing-facts dd { margin: 5px 0 0; overflow-wrap: anywhere; }
+.routing-caveat { margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); color: var(--muted); }
+.routing-table-wrap { overflow-x: auto; }
+.routing-table { width: 100%; border-collapse: collapse; font: 11px var(--mono); }
+.routing-table th, .routing-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+.routing-table th { color: var(--muted); font-weight: 400; }
 .decision-empty { text-align: center; padding: 49px 30px 35px; }
 .decision-orbit { width: 58px; height: 58px; margin: 0 auto 17px; display: grid; place-items: center; border: 1px solid #9a5c34; border-radius: 50%; color: var(--amber); box-shadow: 0 0 25px rgba(255, 159, 67, .16); }
 .decision-empty h3 { margin: 0; font-size: 16px; }
