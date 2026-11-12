@@ -82,6 +82,50 @@ setting were removed and the private original's SHA-256 is listed in
 `publicRedaction.sourceSha256`. Code: `src/evaluation/redteam.ts`,
 `scripts/redteam-run.ts`; the page loads `public/redteam-run-01-result.redacted.json`.
 
+After R2, the red-team filter was tightened: a generated variation that negates
+the seed intent (for example "I have not lost my card") is now discarded, so the
+run ends `INCONCLUSIVE` instead of approving an answer to the wrong question.
+This is a keyword heuristic for known cases, not full semantic understanding.
+
+### Authentic Otari tools run (R3): Code Execution and Web Fetch
+
+Two recorded calls (2026-11-12 UTC) add two checks around the evaluation:
+
+| Step | Otari tool | What it does |
+| --- | --- | --- |
+| Re-check the verdicts | Code Execution, `POST /api/v1/code/execute` | Runs `scripts/contract_v2_check.py`, an independent standard-library Python re-implementation of the 8 v2 rules, in Otari's sandbox (20 s timeout, no persistent container). It re-judges the three real GPT OSS 20B answers from R2 and two answers that must fail. Its verdicts are compared with the TypeScript validator; any disagreement gives `INCONCLUSIVE`, never `APPROVE`. |
+| Check contract provenance | Web Fetch, `POST /api/v1/fetch` | Fetches only `src/contracts/support-card.ts` from this public repository at commit `c2d9ae6`. The final URL must equal the requested one, the text must not be truncated, and its SHA-256 must equal the contract the validators use. The fetched text is treated as untrusted data and only hashed. |
+
+- Code Execution: request `9346995f-7315-45f5-8e0c-662541cbdea4`, HTTP 200,
+  return code 0. Python and TypeScript agree on all five answers (three passed,
+  two failed on the same rules). Decision `APPROVE`.
+- Web Fetch: request `9bbe3ee4-72e3-474e-ad22-2cf582c827a5`, HTTP 200, no
+  redirect, `text/plain`, not truncated, SHA-256
+  `D3DD493DFE7B244BD1EDF9CC328195F44E86D85C638F1EF6D48FB94636FEDDDF` matching
+  the contract at `c2d9ae6`. Decision `APPROVE`.
+- Cost US$0.02: two Otari usage rows of US$0.01, equal to the key budget deltas.
+
+What it does **not** show: two validators written from the same contract
+agreeing is not a formal proof of correctness; only five answers ran in the
+sandbox, which ran a fixed verifier, not a model; the fetched file is this
+project's own public contract, so it shows neither general browsing nor
+resistance to prompt injection; no fallback was requested or occurred.
+
+How it connects to the evaluation: both checks are operator-run steps
+(`npm run otari-tool-run -- code`, then `-- fetch <code evidence>`), each
+gated by `OTARI_LIVE_TOOLS_ENABLED=1` and an Otari budget preflight, sending one
+request without retries. The re-check reads the recorded R2 answers as input;
+the public page only displays the recorded results and makes no call.
+
+Evidence: [Code Execution, redacted copy](public/otari-code-execution-01.redacted.json)
+(SHA-256 `D93C9928C3001A867584036F42094786E665F7CC60853BF4E51FE9F423205013`),
+[Web Fetch, redacted copy](public/otari-web-fetch-01.redacted.json)
+(SHA-256 `6BFF0F07231362B71A0702667CCF976DEDFD5BC57954B4A284D4578D457DD688`).
+Both are **redacted copies, not byte-identical to the originals**, with the same
+fields removed as in R1 and R2. Code: `src/evaluation/otari-tools.ts`,
+`src/otari/client.ts` (`executeOtariCode`, `fetchOtariPage`),
+`scripts/otari-tool-run.ts`, tests in `tests/otari-tools.test.ts`.
+
 The public Netlify configuration publishes only `dist/client`. The inference
 function and private Node backend are intentionally outside the configured
 Netlify functions directory. Do not enable public inference without

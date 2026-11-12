@@ -32,6 +32,26 @@ export const INTENT_ANCHORS: Record<SupportCardCategory, RegExp> = {
   card_arrival: /\b(arriv\w*|deliver\w*|mail\w*|ship\w*|receiv\w*|received|waiting|replacement|new card)\b/i,
 }
 
+const NEGATION = /\b(not|never|no|nobody|nothing|without|cannot|no longer)\b|n't\b/i
+const NOT_YET_ARRIVED = /\b(not|never|still|yet|waiting|wait|where|missing|delayed|late)\b|n't\b/i
+
+/** A negation within the five words before an anchor, in the same clause, reverses it ("I have not lost my card"). */
+function isNegated(text: string, index: number): boolean {
+  const clause = text.slice(0, index).split(/[.,;:!?]|\b(?:but|however|although)\b/i).pop() ?? ''
+  return NEGATION.test(clause.trim().split(/\s+/).slice(-5).join(' '))
+}
+
+/** The anchor must be present with the seed's polarity; a variant that negates the intent no longer matches the seed's expectation. */
+export function intentProblem(category: SupportCardCategory, message: string): string | null {
+  const text = message.replace(/[\u2018\u2019]/g, "'")
+  const anchors = [...text.matchAll(new RegExp(INTENT_ANCHORS[category].source, 'gi'))]
+  if (anchors.length === 0) return `message lost the ${category} intent anchor`
+  if (category === 'card_arrival') {
+    return NOT_YET_ARRIVED.test(text) ? null : 'message does not say the card has not arrived yet'
+  }
+  return anchors.some((anchor) => !isNegated(text, anchor.index ?? 0)) ? null : `message negates the ${category} intent`
+}
+
 export const RED_TEAM_FETCH_PREFIXES = ['https://raw.githubusercontent.com/ErickAmestegui/fallback-contract/'] as const
 export const DEFAULT_RED_TEAM_FETCH_URL = 'https://raw.githubusercontent.com/ErickAmestegui/fallback-contract/bfb692834b878ec9ac684250b5868719d0e482a4/README.md'
 const REFERENCE_EXCERPT_CHARS = 2500
@@ -205,8 +225,7 @@ export function parseGeneratorOutput(raw: string | null): { variants: RedTeamVar
         : variants.some((variant) => variant.seedId === seedId) ? 'duplicate variant for the seed'
           : text.length < 12 || text.length > 500 ? 'message length outside 12-500 characters'
             : text.toLowerCase() === seed.message.toLowerCase() ? 'message repeats the seed unchanged'
-              : !INTENT_ANCHORS[seed.referenceCategory].test(text) ? `message lost the ${seed.referenceCategory} intent anchor`
-                : null
+              : intentProblem(seed.referenceCategory, text)
     if (problem || !planned || !seed) {
       issues.push(`Variant ${index + 1} discarded: ${problem}.`)
       continue

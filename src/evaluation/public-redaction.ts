@@ -1,4 +1,5 @@
 import type { OtariKeyBudgetResult } from '../otari/client'
+import type { CodeCheckRunResult, ContractFetchRunResult } from './otari-tools'
 import type { RedTeamRunConfig, RedTeamRunResult } from './redteam'
 import type { V2RoutingRunConfig, V2RoutingRunResult } from './v2-authentic-run'
 
@@ -68,5 +69,9 @@ export function redactRoutingRunForPublic(run: V2RoutingRunResult, sourceFile: s
 }
 
 export function redactRedTeamRunForPublic(run: RedTeamRunResult, sourceFile: string, sourceSha256: string): PublicRedTeamRunResult {
+  return redactBudgets(run, sourceFile, sourceSha256)
+}
+
+export function redactToolRunForPublic(run: CodeCheckRunResult | ContractFetchRunResult, sourceFile: string, sourceSha256: string) {
   return redactBudgets(run, sourceFile, sourceSha256)
 }

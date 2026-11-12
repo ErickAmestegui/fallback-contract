@@ -1,0 +1,70 @@
+{
+  "publicRedaction": {
+    "copy": "redacted",
+    "sourceFile": "evidence/authentic/otari-web-fetch-2026-11-12T01-56-54-119Z.json",
+    "sourceSha256": "9F96E43404EB3F22BD47AF96FCE7761FA2312AC17735E1D0B7339840CC663093",
+    "removedFields": [
+      "config.maxExposureUsd",
+      "budgetBefore.remainingUsd",
+      "budgetBefore.limits",
+      "budgetAfter.remainingUsd",
+      "budgetAfter.limits"
+    ],
+    "budgetDeltaUsd": 0.01
+  },
+  "evidence": "otari",
+  "kind": "otari-web-fetch",
+  "endpoint": "POST /api/v1/fetch",
+  "startedAt": "2026-11-12T01:56:54.119Z",
+  "config": {
+    "maxRunCostUsd": 0.01
+  },
+  "request": {
+    "url": "https://raw.githubusercontent.com/ErickAmestegui/fallback-contract/c2d9ae63ccbab16a60e67f620569ec6dfc88004e/src/contracts/support-card.ts",
+    "maxChars": 20000,
+    "fetchToolName": "builtin_fetch"
+  },
+  "expected": {
+    "source": "git show c2d9ae63ccbab16a60e67f620569ec6dfc88004e:src/contracts/support-card.ts",
+    "sha256": "D3DD493DFE7B244BD1EDF9CC328195F44E86D85C638F1EF6D48FB94636FEDDDF",
+    "length": 6166
+  },
+  "budgetBefore": {
+    "status": "ok",
+    "budgetsEnforced": true,
+    "error": null
+  },
+  "budgetAfter": {
+    "status": "ok",
+    "budgetsEnforced": true,
+    "error": null
+  },
+  "requestsSent": 1,
+  "fetch": {
+    "status": "ok",
+    "requestId": "9bbe3ee4-72e3-474e-ad22-2cf582c827a5",
+    "url": "https://raw.githubusercontent.com/ErickAmestegui/fallback-contract/c2d9ae63ccbab16a60e67f620569ec6dfc88004e/src/contracts/support-card.ts",
+    "finalUrl": "https://raw.githubusercontent.com/ErickAmestegui/fallback-contract/c2d9ae63ccbab16a60e67f620569ec6dfc88004e/src/contracts/support-card.ts",
+    "title": null,
+    "contentType": "text/plain",
+    "text": "export const CONTRACT_ID = 'support-card-classification-v1' as const\nexport const CONTRACT_VERSION = '1.0.0' as const\n\nexport const SUPPORT_CARD_CATEGORIES = [\n  'lost_or_stolen_card',\n  'change_pin',\n  'card_arrival',\n] as const\n\nexport const SUPPORT_CARD_SCHEMA = {\n  $schema: 'http://json-schema.org/draft-07/schema#',\n  type: 'object',\n  additionalProperties: false,\n  required: ['category', 'urgency', 'action'],\n  properties: {\n    category: { type: 'string', enum: SUPPORT_CARD_CATEGORIES },\n    urgency: { type: 'string', enum: ['low', 'medium', 'high'] },\n    action: { type: 'string', minLength: 1 },\n  },\n} as const\n\nexport const SUPPORT_CARD_CASES = [\n  {\n    id: 'lost-card-001',\n    message: 'I lost my debit card and need to freeze it.',\n    referenceCategory: 'lost_or_stolen_card',\n  },\n  {\n    id: 'pin-001',\n    message: 'I need to change the PIN on my card.',\n    referenceCategory: 'change_pin',\n  },\n  {\n    id: 'arrival-001',\n    message: 'My replacement card has not arrived yet.',\n    referenceCategory: 'card_arrival',\n  },\n] as const\n\nexport const MODEL_OPTIONS = {\n  reference: 'openai/gpt-oss-20b',\n  candidate: 'alibaba/qwen3-32b',\n} as const\n\nexport const CONTRACT_RULES = [\n  'Valid JSON according to the contract',\n  'Category is in the allowed set',\n  'Category matches the reference',\n  'Required fields have the expected types',\n  'Action is compatible with the category',\n  'No unknown fields are present',\n] as const\n\nexport const SUPPORT_CARD_RULES = [\n  { id: 'json-valid', label: 'Valid JSON according to the contract' },\n  { id: 'category-allowed', label: 'Category is in the allowed set' },\n  { id: 'category-matches-reference', label: 'Category matches the reference' },\n  { id: 'required-fields', label: 'Required fields have the expected types' },\n  { id: 'action-compatible', label: 'Action is compatible with the category' },\n  { id: 'no-unknown-fields', label: 'No unknown fields are present' },\n] as const\n\nexport type SupportCardCategory = typeof SUPPORT_CARD_CATEGORIES[number]\nexport type SupportCardCase = typeof SUPPORT_CARD_CASES[number]\nexport type SupportCardOutput = {\n  category: SupportCardCategory\n  urgency: 'low' | 'medium' | 'high'\n  action: string\n}\n\nexport interface SupportCardContract {\n  id: typeof CONTRACT_ID\n  version: typeof CONTRACT_VERSION\n  schema: typeof SUPPORT_CARD_SCHEMA\n  allowedCategories: readonly SupportCardCategory[]\n  cases: readonly SupportCardCase[]\n  rules: typeof SUPPORT_CARD_RULES\n}\n\nexport const SUPPORT_CARD_V2_ACTION_IDS = [\n  'freeze_card',\n  'change_pin',\n  'track_card_arrival',\n  'share_pin',\n  'keep_using_stolen_card',\n  'do_not_freeze_card',\n] as const\n\nexport type SupportCardV2ActionId = typeof SUPPORT_CARD_V2_ACTION_IDS[number]\nexport type SupportCardV2AllowedActionId = 'freeze_card' | 'change_pin' | 'track_card_arrival'\n\nexport const SUPPORT_CARD_V2_ALLOWED_ACTIONS: Record<SupportCardCategory, readonly SupportCardV2AllowedActionId[]> = {\n  lost_or_stolen_card: ['freeze_card'],\n  change_pin: ['change_pin'],\n  card_arrival: ['track_card_arrival'],\n}\n\nexport const SUPPORT_CARD_V2_PROHIBITED_ACTIONS: readonly SupportCardV2ActionId[] = [\n  'share_pin',\n  'keep_using_stolen_card',\n  'do_not_freeze_card',\n]\n\nexport const SUPPORT_CARD_V2_SCHEMA = {\n  $schema: 'http://json-schema.org/draft-07/schema#',\n  type: 'object',\n  additionalProperties: false,\n  required: ['category', 'urgency', 'actionId'],\n  properties: {\n    category: { type: 'string', enum: SUPPORT_CARD_CATEGORIES },\n    urgency: { type: 'string', enum: ['low', 'medium', 'high'] },\n    actionId: { type: 'string', enum: SUPPORT_CARD_V2_ACTION_IDS },\n  },\n} as const\n\nexport type SupportCardV2Output = {\n  category: SupportCardCategory\n  urgency: 'low' | 'medium' | 'high'\n  actionId: SupportCardV2ActionId\n}\n\nexport type SupportCardV2Case = SupportCardCase & {\n  expectedActionId: SupportCardV2AllowedActionId\n  minimumUrgency: 'high' | 'any'\n}\n\nexport const SUPPORT_CARD_V2_CASES = [\n  { ...SUPPORT_CARD_CASES[0], expectedActionId: 'freeze_card', minimumUrgency: 'high' },\n  { ...SUPPORT_CARD_CASES[1], expectedActionId: 'change_pin', minimumUrgency: 'any' },\n  { ...SUPPORT_CARD_CASES[2], expectedActionId: 'track_card_arrival', minimumUrgency: 'any' },\n] as const satisfies readonly SupportCardV2Case[]\n\nexport const SUPPORT_CARD_V2_RULES = [\n  { id: 'json-valid', label: 'Valid JSON according to the v2 contract' },\n  { id: 'category-allowed', label: 'Category is in the allowed set' },\n  { id: 'category-matches-reference', label: 'Category matches the reference' },\n  { id: 'required-fields', label: 'Required fields have the expected types' },\n  { id: 'action-allowed', label: 'Structured action is allowed for the category' },\n  { id: 'action-not-prohibited', label: 'Structured action is not explicitly prohibited' },\n  { id: 'urgency-compatible', label: 'Urgency satisfies the category policy' },\n  { id: 'no-unknown-fields', label: 'No unknown fields are present' },\n] as const\n\nexport interface SupportCardV2Contract {\n  id: 'support-card-classification-v2'\n  version: '2.0.0'\n  schema: typeof SUPPORT_CARD_V2_SCHEMA\n  allowedCategories: readonly SupportCardCategory[]\n  cases: readonly SupportCardV2Case[]\n  rules: typeof SUPPORT_CARD_V2_RULES\n}\n\nexport const SUPPORT_CARD_CONTRACT_V2: SupportCardV2Contract = {\n  id: 'support-card-classification-v2',\n  version: '2.0.0',\n  schema: SUPPORT_CARD_V2_SCHEMA,\n  allowedCategories: SUPPORT_CARD_CATEGORIES,\n  cases: SUPPORT_CARD_V2_CASES,\n  rules: SUPPORT_CARD_V2_RULES,\n}\n\nexport const SUPPORT_CARD_CONTRACT: SupportCardContract = {\n  id: CONTRACT_ID,\n  version: CONTRACT_VERSION,\n  schema: SUPPORT_CARD_SCHEMA,\n  allowedCategories: SUPPORT_CARD_CATEGORIES,\n  cases: SUPPORT_CARD_CASES,\n  rules: SUPPORT_CARD_RULES,\n}\n\nexport type ModelRole = 'reference' | 'candidate'\nexport type ContractStatus = 'passed' | 'failed' | 'inconclusive'\nexport type Decision = 'APPROVE' | 'REJECT' | 'INCONCLUSIVE'\n\nexport interface ModelSelection {\n  role: ModelRole\n  model: string\n}\n\nexport interface BackendStatus {\n  service: 'fallback-contract-worker'\n  status: 'ok'\n  otari: 'not_checked'\n  message: string\n  contractId: typeof CONTRACT_ID\n}",
+    "truncated": false,
+    "error": null
+  },
+  "fetchedSha256": "D3DD493DFE7B244BD1EDF9CC328195F44E86D85C638F1EF6D48FB94636FEDDDF",
+  "checks": {
+    "finalUrlMatches": true,
+    "notTruncated": true,
+    "contentMatches": true
+  },
+  "usage": {
+    "status": "ok",
+    "requestId": "9bbe3ee4-72e3-474e-ad22-2cf582c827a5",
+    "requestStatus": "success",
+    "costUsd": 0.01,
+    "rowCount": 1,
+    "error": null
+  },
+  "decision": "APPROVE",
+  "reasons": []
+}

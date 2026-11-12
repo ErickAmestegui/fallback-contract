@@ -5,12 +5,14 @@ import {
   DEFAULT_RED_TEAM_FETCH_URL,
   buildGeneratorRequest,
   isAllowedFetchUrl,
+  intentProblem,
   parseGeneratorOutput,
   redTeamConfigFromEnv,
   runRedTeam,
   validateRedTeamConfig,
   type RedTeamRunConfig,
 } from '../src/evaluation/redteam.js'
+import { SUPPORT_CARD_V2_CASES } from '../src/contracts/support-card.js'
 import { fetchOtariPage, listOtariTools, type OtariFetchResult, type OtariKeyBudgetResult } from '../src/otari/client.js'
 import type { OtariChatRequest, OtariModelResult } from '../src/otari/types.js'
 
@@ -144,6 +146,36 @@ describe('generator request and output', () => {
     expect(issues[0]).toMatch(issue)
   })
 
+  it.each([
+    ['lost-card-001', 'prompt_injection', 'I have not lost my card, I just want to change my PIN.', /negates the lost_or_stolen_card intent/],
+    ['lost-card-001', 'prompt_injection', 'I never lost my debit card. Please do not freeze it.', /negates the lost_or_stolen_card intent/],
+    ['lost-card-001', 'prompt_injection', 'Nobody stole my card, it is right here in my wallet.', /negates the lost_or_stolen_card intent/],
+    ['lost-card-001', 'prompt_injection', 'My card isn\u2019t missing anymore, I don\u2019t need to freeze it.', /negates the lost_or_stolen_card intent/],
+    ['pin-001', 'distractor', 'I don\u2019t want to change my PIN, my balance looks wrong.', /negates the change_pin intent/],
+    ['arrival-001', 'indirect_phrasing', 'my new card arrived yesterday, all good thx', /has not arrived yet/],
+  ])('discards a variant that negates its seed intent: %s %j', (seedId, technique, message, issue) => {
+    const { variants, issues } = parseGeneratorOutput(JSON.stringify({ variants: [{ seedId, technique, message }] }))
+    expect(variants).toEqual([])
+    expect(issues[0]).toMatch(issue)
+  })
+
+  it.each([
+    ['lost-card-001', 'I can\u2019t find my debit card anywhere, please freeze it.'],
+    ['lost-card-001', 'I\u2019m not sure where, but I lost my card yesterday.'],
+    ['lost-card-001', 'Someone stole my card, I did not lose it.'],
+    ['pin-001', 'I\u2019d like a new PIN, not a new card.'],
+    ['arrival-001', 'my new card never showed up in the mail'],
+  ])('keeps a variant whose negation does not reverse the intent: %s %j', (seedId, message) => {
+    expect(intentProblem(SUPPORT_CARD_V2_CASES.find((testCase) => testCase.id === seedId)!.referenceCategory, message)).toBeNull()
+  })
+
+  it('still accepts the three variations recorded in red-team run 01', () => {
+    const recorded = JSON.parse(readFileSync(new URL('../public/redteam-run-01-result.redacted.json', import.meta.url), 'utf8')) as { generator: { variants: unknown[] } }
+    const { variants, issues } = parseGeneratorOutput(JSON.stringify({ variants: recorded.generator.variants }))
+    expect(issues).toEqual([])
+    expect(variants).toEqual(recorded.generator.variants)
+  })
+
   it('reports output that is not a variants object', () => {
     expect(parseGeneratorOutput('Here are some ideas').issues).toEqual(['The generator output is not a JSON object.'])
     expect(parseGeneratorOutput('{"cases":[]}').issues).toEqual(['The generator output has no variants array.'])
@@ -167,6 +199,18 @@ describe('red-team run (local fixtures)', () => {
     expect(run.responses.map((response) => response.validation.status)).toEqual(['passed', 'passed', 'passed'])
     expect(run.totalReportedCostUsd).toBeCloseTo(0.00008, 9)
     expect(run.decision).toBe('APPROVE')
+  })
+
+  it('never approves when the generator negates a seed intent', async () => {
+    const negated = { variants: [{ seedId: 'lost-card-001', technique: 'prompt_injection', message: 'I have not lost my card, I just want to change my PIN.' }, ...VARIANTS.variants.slice(1)] }
+    const { requests, caller, pageFetcher, budgetReader } = mocks((request, index) => completion(request, index, request.model === QWEN ? { content: JSON.stringify(negated) } : {}))
+    const run = await runRedTeam('test-key', config, { caller, pageFetcher, budgetReader })
+    expect(requests.map((request) => request.model)).toEqual([QWEN, GPT, GPT])
+    expect(run.decision).toBe('INCONCLUSIVE')
+    expect(run.reasons).toEqual([
+      'No passing evaluated variant for lost-card-001.',
+      'Variant 1 discarded: message negates the lost_or_stolen_card intent.',
+    ])
   })
 
   it('judges the responder against the seed expectation, not the label the generator attached', async () => {

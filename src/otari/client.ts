@@ -529,3 +529,77 @@ export async function fetchOtariPage(
     clearTimeout(timeout)
   }
 }
+
+export interface OtariCodeExecutionResult {
+  status: 'ok' | 'inconclusive'
+  httpStatus: number | null
+  requestId: string | null
+  returnCode: number | null
+  stdout: string | null
+  stderr: string | null
+  fileCount: number | null
+  error: { status: number | null; code: string | null; message: string } | null
+}
+
+/** `POST /api/v1/code/execute`: runs the code exactly as sent in Otari's sandbox, with no model. Every run that reaches the sandbox is billed. */
+export async function executeOtariCode(
+  env: OtariEnv,
+  code: string,
+  timeoutSeconds: number,
+  fetcher: typeof fetch = fetch,
+  timeoutMs = 45_000,
+): Promise<OtariCodeExecutionResult> {
+  const unavailable = (error: NonNullable<OtariCodeExecutionResult['error']>, httpStatus: number | null = null, requestId: string | null = null): OtariCodeExecutionResult => ({
+    status: 'inconclusive',
+    httpStatus,
+    requestId,
+    returnCode: null,
+    stdout: null,
+    stderr: null,
+    fileCount: null,
+    error,
+  })
+  if (!env.OTARI_API_KEY) {
+    return unavailable({ status: null, code: 'missing_secret', message: 'Otari no está configurado en el backend.' })
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const response = await fetcher(`${OTARI_BASE_URL}/code/execute`, {
+      method: 'POST',
+      headers: { 'Otari-Key': env.OTARI_API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, timeout_seconds: timeoutSeconds }),
+      signal: controller.signal,
+    })
+    const requestId = response.headers.get('Otari-Request-ID')
+    let payload: { code?: unknown; detail?: unknown; stdout?: unknown; stderr?: unknown; return_code?: unknown; files?: unknown }
+    try {
+      payload = (await response.json()) as typeof payload
+    } catch {
+      return unavailable({ status: response.status, code: response.ok ? 'invalid_code_payload' : `http_${response.status}`, message: 'Respuesta de ejecución ilegible.' }, response.status, requestId)
+    }
+    if (!response.ok) {
+      return unavailable({
+        status: response.status,
+        code: nullableString(payload.code) ?? response.headers.get('Otari-Error-Code') ?? `http_${response.status}`,
+        message: typeof payload.detail === 'string' ? payload.detail : 'Otari rechazó o no pudo completar la ejecución.',
+      }, response.status, requestId)
+    }
+    const returnCode = nullableNumber(payload.return_code)
+    return {
+      status: 'ok',
+      httpStatus: response.status,
+      requestId,
+      returnCode: returnCode !== null && Number.isInteger(returnCode) ? returnCode : null,
+      stdout: typeof payload.stdout === 'string' ? payload.stdout : null,
+      stderr: typeof payload.stderr === 'string' ? payload.stderr : null,
+      fileCount: Array.isArray(payload.files) ? payload.files.length : null,
+      error: null,
+    }
+  } catch (error) {
+    return unavailable({ status: null, code: transportErrorCode(error), message: 'No se pudo completar la ejecución en Otari.' })
+  } finally {
+    clearTimeout(timeout)
+  }
+}

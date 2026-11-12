@@ -5,6 +5,7 @@ import { decideComparison } from './evaluation/decision'
 import { LOCAL_FIXTURES } from './evaluation/fixtures'
 import type { AuthenticComparisonResponse } from './evaluation/authentic'
 import type { ComparisonResult } from './evaluation/types'
+import { OtariToolsPanel } from './OtariToolsPanel'
 import { RedTeamRunPanel } from './RedTeamRunPanel'
 import { RoutingRunPanel } from './RoutingRunPanel'
 import './App.css'
@@ -17,6 +18,7 @@ const navigation = [
   { label: 'Evidence', target: 'evidence', icon: '▤' },
   { label: 'Routing run', target: 'routing-run', icon: '⤳' },
   { label: 'Red team run', target: 'redteam-run', icon: '⚑' },
+  { label: 'Otari tools', target: 'otari-tools', icon: '⚙' },
 ]
 
 function App() {
@@ -153,6 +155,7 @@ function App() {
         {recordedRun && <ComparisonDetails result={recordedRun.comparison} authenticEvidence={recordedRun} />}
         <RoutingRunPanel />
         <RedTeamRunPanel />
+        <OtariToolsPanel />
         {comparison && <ComparisonDetails result={comparison} authenticEvidence={null} />}
 
         <section className="lower-grid" id="contracts">
